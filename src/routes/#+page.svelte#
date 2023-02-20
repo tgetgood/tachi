@@ -1,0 +1,29 @@
+<script>
+  let number = Math.floor(Math.random()*1000)
+  let hidden = false
+
+  const tac = function () {
+    hidden = false
+    requestAnimationFrame(() => hidden = true)
+  }
+</script>
+
+<p>Press [Spacebar] to flash next image</p>
+
+<div id=outer>
+<h2 class={hidden ? "hide" : "show"}>{number}</h2>
+</div>
+
+<style>
+  .hide {
+    display: none;
+  }
+
+  div#outer {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+  }
+</style>
+
