@@ -1,8 +1,38 @@
 <script>
   let number;
-  let hidden = false;
-  let height = 800;
-  let width = 1000;
+  let hidden = true;
+  let height;
+  let width;
+
+  // Difficulty level (number of digits to display)
+  let level = 7;
+
+  function setsize(window) {
+    height = window.innerHeight
+    width = window.innerWidth
+  }
+
+  function onload(e) {
+    setsize(e);
+  }
+
+  function onresize(e) {
+    setsize(this);
+  }
+
+  function flicker (n) {
+    hidden = false;
+    if (n > 0) {
+      requestAnimationFrame(() => flicker(n - 1));
+    } else {
+      hidden = true;
+    }
+  }
+
+  function tac (e) {
+    reset(level);
+    flicker(3);
+  }
 
   function reset(digits) {
     let mask = Math.pow(10, digits);
@@ -18,27 +48,14 @@
       number = n.toString();
     }
   };
-
-  const tac = function (e) {
-    reset(7);
-    requestAnimationFrame(() => {
-      let s = performance.now();
-      hidden = false;
-      requestAnimationFrame(() => {
-        hidden = true;
-        let diff = performance.now() - s;
-        console.log("time shown (lower bound): " + diff.toString());
-      });
-    });
-  };
-
 </script>
 
-<svelte:window on:keypress={tac}/>
+<svelte:window on:keypress={tac} use:onload on:resize={onresize}/>
+
 <p>Press [Spacebar] to flash next image</p>
 
 <div id=outer style="height: {height}px; width: {width}px;">
-<h2 class={hidden ? "hide" : "show"}>{number}</h2>
+  <h2 class={hidden ? "hide" : "show"}>{number}</h2>
 </div>
 
 
