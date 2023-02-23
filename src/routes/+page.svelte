@@ -1,29 +1,47 @@
 <script>
-  let number = Math.floor(Math.random()*1000);
-  let hidden = true;
+  let number;
+  let hidden = false;
   let height = 800;
   let width = 1000;
 
+  function reset(digits) {
+    let mask = Math.pow(10, digits);
+    let n = Math.floor(Math.random() * mask);
+    let len = Math.ceil(Math.log10(n));
+    if (len < digits) {
+      number = "0"
+        for (let i = digits - len - 1; i > 0; i--) {
+        number += "0";
+      };
+      number += n.toString();
+    } else {
+      number = n.toString();
+    }
+  };
+
   const tac = function (e) {
-    console.log(e);
+    reset(7);
     requestAnimationFrame(() => {
+      let s = performance.now();
       hidden = false;
       requestAnimationFrame(() => {
-        hidden = true
+        hidden = true;
+        let diff = performance.now() - s;
+        console.log("time shown (lower bound): " + diff.toString());
       });
     });
   };
 
-  function press (e) {
-    console.log(e);
-  };
 </script>
 
+<svelte:window on:keypress={tac}/>
 <p>Press [Spacebar] to flash next image</p>
 
-<div id=outer style="height: {height}px; width: {width}px;" on:click={tac}>
+<div id=outer style="height: {height}px; width: {width}px;">
 <h2 class={hidden ? "hide" : "show"}>{number}</h2>
 </div>
+
+
 
 <style>
   .hide {
@@ -36,4 +54,3 @@
     align-items: center;
   }
 </style>
-
