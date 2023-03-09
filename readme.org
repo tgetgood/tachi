@@ -1,0 +1,40 @@
+#+TITLE: Not a Real Tachistoscope
+
+But lot easier to come by and hopefully just as fun.
+
+Try the [[https://tgetgood.github.io/tachi][demo]] and see for yourself!
+
+* What am I looking at?
+  A game that I hope will be fun. A game where you learn to see things faster
+  and more dynamically.
+
+  The difficulty autotunes based on your performace.
+
+  I like games where you succeed by growing. Not the fictional character you
+  play, but you yourself.
+* Where does it come from?
+  Inspired by the work of [[https://en.wikipedia.org/wiki/Samuel_Renshaw][Sam Renshaw]] before, during, and after WWII. See also
+  [[https://www.tandfonline.com/doi/abs/10.1080/00223980.1945.9917254][this paper]].
+
+  Adapted to modern screens with much lower reliablity than Renshaw's
+  tachistoscopes (he trained some students to recognise a 7 digit number in only
+  3μs and claimed that anyone could be trained to recognise one in 0.5ms), but
+  I'm hoping there will still be some advantage to memory, perception, and
+  visual comprehension to be had with the 1/15 to 1/100 of a second duration
+  that can be achieved on modern screens.
+* Limitations
+  Lots of factors contribute to how long it takes your monitor to display an
+  image after it's been told to do so. The monitor, gpu, kernel, compositor, and
+  browser are probably the big ones.
+
+  I don't pretend to understand all of these factors or to be able to predict
+  the performance of your setup. Some laptops need 4 frames at 60Hz to reliably
+  blink an image without tearing, while my desktop can reliably display a single
+  frame at 120Hz (on one of the screens, but not the other) without tearing.
+
+  So I've included a slider in the game to set the minimum "blink time". If you
+  push the space bar and swear that sometimes nothing happens, then you're
+  probably right. Adjust the blink time until an image flashes every time.
+
+  Note, if you want a harder game, try to tune it so that something always
+  shows, but tearing makes it noisy. This isn't possible on all setups.
