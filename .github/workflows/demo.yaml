@@ -10,8 +10,15 @@ permissions:
   pages: write
   id-token: write
 
+concurrency:
+  group: 'demo'
+  cancel-in-progress: true
+
 jobs:
   build:
+    environment:
+      name: demo
+      url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
     steps:
       - name: checkout
