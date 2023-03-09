@@ -1,4 +1,4 @@
-name: deploy-demo
+name: Deploy master to GitHub pages as a demo
 
 on:
   push:
@@ -16,3 +16,12 @@ jobs:
         run: |
           npm install
           npm run build
+      - name: setup GH pages
+        uses: actions/configure-pages@v3
+      - name: upload demo
+        uses: actions/upload-pages-artifact@v1
+        with:
+          path: './build'
+      - name: deploy demo to GH pages
+        id: deployment
+        uses: actions/deploy-pages@v1
