@@ -1,7 +1,7 @@
-  export function display(v) {
-    if (v) {
-      "display: block;"
-    } else {
-      "display: none;"
-    }
+export const dis = (v) => {
+  if (v) {
+    "block"
+  } else {
+    "none"
   }
+}

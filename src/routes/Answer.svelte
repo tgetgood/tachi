@@ -1,53 +1,51 @@
 <script>
   export let x = 0;
   export let y = 0;
-  export let number = [];
   export let show = false;
+  export let onClose = () => null;
+  export let number = [1,2,3,4];
 
-  import {display} from '../utils.js'
+  let guess = number.map( x => "");
 
-  let guess = [""]
-  let state = 0;
-  
   function focus(state) {
-    if (state[0] == input) {
-      const el = document.getElementById("digit-"+state[1]);
-      setTimeout(10, el.focus());
+    const el = document.getElementById("digit-" + state);
+    el.focus();
+  }
+
+  function answerEntry(index, e) {
+    e.preventDefault();
+    if (['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'].indexOf(e.key) >= 0) {
+      guess[index] = e.key;
+      
+      if (index < number.length - 1) {
+        focus(index + 1)
+      } else {
+        onClose(guess);
+      }
+    } else if (e.key == 'Backspace' && index > 0) {
+      guess[index - 1] = "";
+      focus(index - 1);
     }
   }
 
-  function answerEntry(e) {
-    e.stopPropagation();
-    if (['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'].indexOf(e.key) >= 0) {
-      e.preventDefault();
-      guess[state[1]] = e.key;
-      if (state[1] < level - 1) {
-        state = [state[0], state[1] + 1]
-        focus(state)
-      } else {
-        state = evaluateAnswer(guess);
-      } 
-    } else if (e.key == 'Backspace' && state[1] > 0) {
-      state = [state[0], state[1] - 1];
-      focus(state);
-    } else {
-      e.preventDefault();
-    }
+  function clear(index) {
+    guess = number.map(x => "");
+    focus(0);
   }
 
 </script>
 
 
-<div id=outer style="top: {x}px; left: {y}px;">
+<div id=outer style:display={show ? 'block' : 'none'}
+     style="top: {x}px; left: {y}px;" >
 
-  <div style={display(show)}  id="answer-container">
+  <div  id="answer-container" on:click={clear} >
     {#each guess as digit, index}
       <input id="digit-{index}"
              type=none
              value={digit}
              class="answer-digit"
-             on:keydown={answerEntry}
-             >
+             on:keydown={e => answerEntry(index, e)}/>
     {/each}
   </div>
 </div>
@@ -70,7 +68,7 @@
     border-width: 0.1em;
     border-color: lightgrey;
 
-
+    /* TODO: remove the text cursor */
     font-size: 1.4em;
   }
 

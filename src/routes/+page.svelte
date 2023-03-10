@@ -1,19 +1,22 @@
 <script>
 
+  import Query from './Query.svelte';
   import Answer from './Answer.svelte';
 
   const init = Symbol("init");
   const blink = Symbol("blink");
-  const input = Symbol("input");
+  const query = Symbol("query");
   const next = Symbol("next");
   const again = Symbol("again");
 
-  let state = [init, 0];
+  let state = init;
 
-  let number = "";
+  let number = [];
   let hidden = true;
   let height;
   let width;
+
+  let games = [];
 
   // HACK: is this really the way to do it?
   let document;
@@ -25,7 +28,6 @@
 
   $: correctD = correctDigits(guess, number);
   $: correctP = correctD == level;
-
 
   function correctDigits(a, b) {
     let out = 0;
@@ -44,13 +46,12 @@
 
   function onload(e) {
     setsize(e);
-    document = e.document;
+//    document = e.document;
   }
 
   function onresize(e) {
     setsize(this);
   }
-
 
   function resetGame() {
 
@@ -60,16 +61,12 @@
   }
 
   function flicker (n) {
-    state = [init, 0];
-    setTimeout(Math.random()*1000+500, (() => {
-      state = [blink, 0];
+      state = blink;
       if (n > 0) {
         requestAnimationFrame(() => flicker(n - 1));
       } else {
-        state = [input, 0];
-        focus(state);
+        state = query;
       }
-    })());
   }
 
   function tac (e) {
@@ -77,9 +74,9 @@
     if (e.key === ' ') {
 
       // Try again until correct
-      // if (number == "" || correctP) {
+      if (number == "" || correctP) {
         reset(level);
-      // };
+      };
 
       guess = ["", "", "", ""];
       flicker(4);
@@ -88,18 +85,23 @@
   }
 
   function reset(digits) {
-    let mask = Math.pow(10, digits);
-    let n = Math.floor(Math.random() * mask);
-    let len = Math.ceil(Math.log10(n));
-    if (len < digits) {
-      number = "0"
-        for (let i = digits - len - 1; i > 0; i--) {
-        number += "0";
-      };
-      number += n.toString();
-    } else {
-      number = n.toString();
+    number = [];
+    for(let i = 0; i < level; i++) {
+       number.push(Math.floor(Math.random()*10).toString());
     }
+      
+    // let mask = Math.pow(10, digits);
+    // let n = Math.floor(Math.random() * mask);
+    // let len = Math.ceil(Math.log10(n));
+    // if (len < digits) {
+    //   number = "0"
+    //     for (let i = digits - len - 1; i > 0; i--) {
+    //     number += "0";
+    //   };
+    //   number += n.toString();
+    // } else {
+    //   number = n.toString();
+    // }
   }
 
   function show(state, s) {
@@ -109,13 +111,15 @@
       return 'display: none;';
     }
   }
-
   
 </script>
 
 <svelte:window on:keypress={tac} use:onload on:resize={onresize}/>
 
-<Answer x={width/2} y={height/2} number={['1', '2', '3', '4']} show={true}/>
+<Query x={width/2} y={height/2} number={number.reduce((a, x) => a + x, "")}
+       show={state == blink}/>
+<Answer x={width/2} y={height/2} number={number} show={state=query}
+        />
 
 <p style={show(state, next)}>Press [Spacebar] to flash next image</p>
 
