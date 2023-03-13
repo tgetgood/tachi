@@ -2,7 +2,7 @@
 
 But lot easier to come by and hopefully just as fun.
 
-Try the [[https://tgetgood.github.io/tachi][demo]] and see for yourself!
+[[https://tgetgood.github.io/tachi][Try the demo]] and see for yourself!
 
 * What am I looking at?
   A game that I hope will be fun. A game where you learn to see things faster
@@ -18,23 +18,62 @@ Try the [[https://tgetgood.github.io/tachi][demo]] and see for yourself!
 
   Adapted to modern screens with much lower reliablity than Renshaw's
   tachistoscopes (he trained some students to recognise a 7 digit number in only
-  3μs and claimed that anyone could be trained to recognise one in 0.5ms), but
-  I'm hoping there will still be some advantage to memory, perception, and
-  visual comprehension to be had with the 1/15 to 1/100 of a second duration
-  that can be achieved on modern screens.
+  3μs and claimed that almost anyone could be trained to recognise one in
+  0.5ms), but I'm hoping there will still be some advantage to memory,
+  perception, and visual comprehension to be had with the 1/15 to 1/100 of a
+  second duration that can be achieved on modern screens.
 * Limitations
-  Lots of factors contribute to how long it takes your monitor to display an
-  image after it's been told to do so. The monitor, gpu, kernel, compositor, and
-  browser are probably the big ones.
+  Due to a deep stack that I'm not going to pretend I understand in depth, it
+  has proven impossible to reliably show an image for a single frame in a
+  browser.
 
-  I don't pretend to understand all of these factors or to be able to predict
-  the performance of your setup. Some laptops need 4 frames at 60Hz to reliably
-  blink an image without tearing, while my desktop can reliably display a single
-  frame at 120Hz (on one of the screens, but not the other) without tearing.
+  It seems that setting the minimum time to 4 frames results in images showing
+  every time without significant tearing, but obviously this hasn't been tested
+  extensively.
+* Difficulty Levels
+  It's a game after all, so how do we make it harder as you go?
+** Ideas
+*** Length of number to memorise
+    This is currently implemented, and for the life of me I can't get the 7
+    digit numbers in 4 frames.
+*** Length of exposure
+    If you can't memorise a given number size, we should show you numbers of
+    that size for a longer duration and then work to shorten that duration.
+*** Radomise location of text
+    If you don't know where the image will pop up it requires a more gestalt
+    approach to seeing, which is the point. Will help improve size of perceptual
+    field.
 
-  So I've included a slider in the game to set the minimum "blink time". If you
-  push the space bar and swear that sometimes nothing happens, then you're
-  probably right. Adjust the blink time until an image flashes every time.
+    Will this make a difference on a small screen?
 
-  Note, if you want a harder game, try to tune it so that something always
-  shows, but tearing makes it noisy. This isn't possible on all setups.
+    Do we move the numbers each time you get it right, or every retry as well?
+    Is that something that should scale with difficulty?
+*** Play with delay before flash
+    Randomised delay prevents you from priming yourself. I think that's
+    important, but I have no evidence as of yet.
+*** Multiple numbers
+    Show columns of numbers to memorise. Or to really be a jerk just put N
+    numbers at random points on the screen.
+*** The Element of Scorched Earth
+    Add chaff to the mix. Put words or nonsense letters on the screen but you
+    only need to memorise the numbers. This might just be frustrating.
+*** Text
+    Words, short sentences, even whole paragraphs with longer time lapse. The
+    problem longer text with this is that we need comprehension tests since pure
+    regurgitation isn't what anyone wants.
+
+    What about nonsense text (jaberwock)? Garbage text (qweoasdafht)? You could
+    probably publish a cool paper about memory profiles of real language vs
+    syntactically/phonetically correct nonsense vs noise text. I don't know if
+    it would be any fun for players though.
+*** Image matching
+    Show 4+ images and make the player figure out which are the same. They can
+    creep together like Pavlov's circle & elipse if I feel sadistic.
+*** Bird watching
+    What bird did you just see? How many? which way were they going?
+
+    Basically replicated Renshaw's work for the navy during WWII, but with
+    birds.
+
+    I think this would be fun and useful, but I'll need to find and label the
+    images.
