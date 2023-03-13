@@ -36,7 +36,7 @@
 
 </script>
 
-<div class="quiz-wrapper" style="top: {x}px; left: {y}px;" >
+<div class="quiz-wrapper" style="top: calc({y}px - 2.4em); left: calc({x}px - 5em);" >
 
   <h2 class="blink">{blink ? number.reduce((a,x) => a+x, "") : ""}</h2>
 

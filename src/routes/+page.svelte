@@ -39,8 +39,8 @@
   }
 
   function setsize(window) {
-    height = window.innerHeight*.95;
-    width = window.innerWidth*0.95;
+    height = window.innerHeight*.97;
+    width = window.innerWidth*.97;
   }
 
   function onload(e) {
@@ -100,7 +100,7 @@
         number = genGame(score);
       };
       state = pause;
-      setTimeout(() => playGame(minFrames), Math.random()*300+200);
+      setTimeout(() => playGame(minFrames), Math.random()*500+500);
     }
   }
 
@@ -134,7 +134,7 @@
 <svelte:window on:keypress={pageListener} use:onload on:resize={onresize}/>
 
 <div style:height="{height}px" style:width="{width}px">
-  <Answer x={width/2} y={height/2+50}
+  <Answer x={width/2} y={height/2}
           bind:this={queryEl}
           number={number}
           blink={state == blink}
