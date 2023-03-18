@@ -1,5 +1,7 @@
 <script>
 
+  //TODO: Save current level and score to local storage
+
   import Answer from './Answer.svelte';
 
   const init = Symbol("init");
@@ -10,23 +12,28 @@
   const again = Symbol("again");
 
   // This might need to be adjusted by platform
-  let minFrames = 4;
+  // TODO: How does one detect framerate from the browser API?
+  // REVIEW: Should I just set this in miliseconds and let the system round it
+  // to the nearest frame? That's probably the best way to do it. Need to test
+  // that that gives us short enough display windows though.
+  const minDelay = 4;
+  const maxDelay = 60;
+  const initDelay = 16;
 
-  let state = init;
-
-  let number = [];
   let height;
   let width;
 
-  let queryEl;
+  let state = init;
+
   let games = [];
 
-  // Difficulty level (number of digits to display)
-  let level = 4;
-  let score = 1500;
+  let correctCount = 0;
 
-  let guess = [];
-  $: correctCount = correctDigits(guess, number);
+  // Difficulty level
+  let level = 5;
+  let delay = initDelay;
+  let dickishness = 1;
+  let score = 0;
 
   function correctDigits(a, b) {
     let out = 0;
@@ -51,82 +58,124 @@
     setsize(this);
   }
 
-  function resetGame() {
-  }
-
   function adjustLevel(number, guess) {
     const result = correctDigits(guess, number);
 
     if (result == number.length) {
       score += 100;
+      delay = Math.max(minDelay, Math.ceil(delay*3/4));
+      dickishness += 2;
     } else {
-      score = Math.max(0, score - (number.length - result)*5);
+      score -= 100*(number.length - result)/number.length;
+      delay = Math.min(maxDelay, Math.ceil(delay * 4/3));
+      dickishness = Math.max(1, Math.floor(dickishness* (1/2 + result/(2*number.length))));
     }
-    console.log(score);
+    if (score >= 500) {
+      level += 1;
+      delay = initDelay;
+      score = 0;
+    } else if (score <= -800) {
+      level -= 1;
+      score = 300;
+    }
   }
 
-  function playGame (n) {
-      state = blink;
+  function processResponse(games, guess, i) {
+    const game = games[i];
 
-      if (n > 0) {
-        requestAnimationFrame(() => playGame(n - 1));
+    adjustLevel(game.number, guess);
+    correctCount += correctDigits(guess, game.number);
+
+    if (i == games.length - 1) {
+      if (correctCount == games.reduce( (a,x) => a + x.number.length, 0)) {
+        state = next;
       } else {
-        queryEl.$set({
-          onClose: g => {
-            adjustLevel(number, g);
-            guess = g;
-            if (correctDigits(g, number) == number.length) {
-              state = next;
-            } else {
-              state = again;
-            }
+        state = again;
+      }
+    }
+  }
+
+  function playGame (games, n) {
+    correctCount = 0;
+    state = blink;
+
+    if (n > 0) {
+      requestAnimationFrame(() => playGame(games, n - 1));
+    } else {
+      for (let i = 0; i < games.length; i++) {
+        games[i].queryEl.$set({
+          onClose: g => processResponse(games, g, i)
+        });
+      }
+
+      state = pause;
+
+      setTimeout(() => {
+        state = query;
+        requestAnimationFrame(() => {
+          for (let i = games.length - 1; i >= 0; i--) {
+            games[i].queryEl.clear();
           }
         });
-          
-        state = pause;
-
-        setTimeout(() => {
-          state = query;
-          requestAnimationFrame(() => queryEl.clear());
-        }, 300);
-      }
+      }, 300);
+    }
   }
 
   function pageListener (e) {
     if (e.key === ' ') {
       e.preventDefault();
 
-      if (number.length == 0 || state == next) {
-        number = genGame(score);
+      if (games.length == 0 || state == next) {
+        games = genGame(level);
+        correctCount = 0;
       };
       state = pause;
-      setTimeout(() => playGame(minFrames), Math.random()*500+500);
+      setTimeout(() => playGame(games, delay), Math.random()*500+500);
+
     }
   }
 
-  function gameLevel(score) {
-    if (score < 5000) {
-      return Math.max(3, Math.floor(score/500));
-    } else {
-      alert("That's all for now.");
-    } 
+  function jitter(max, x, d) {
+    // REVIEW: Maybe this ought to be gaussian instead of uniform.
+    return Math.max(-1*x, Math.min(max - x, (Math.random() - 1/2)*Math.pow(2, d)));
   }
 
-  function genGame(score) {
+  function genGame(level) {
+    if (level <= 9) {
+      return [genSimpleGame(level, width/2, height/2)];
+
+    } else if (level <= 12) {
+      console.warn("You are now in an unstable level. Try to have fun.");
+      let games = [];
+      for (let i = 9; i <= level; i++) {
+        let y = height/2 - (level - 9)/2*100 + (level - i)*100;
+        console.log(width/2, y)
+        games.push(genSimpleGame(3, width/2, y));
+      }
+      return games;
+    } else {
+      throw("You've reached the highest level yet implemented. You win!");
+    }
+  }
+  function genSimpleGame(level, x, y) {
+    let l = Math.random() < dickishness/2048 ? level + 1 : level;
+
+      let loc = {
+        x: x + jitter(width, x, dickishness),
+        y: y + jitter(height, y, dickishness)
+      };
+
     let number = [];
-    for(let i = 0; i < gameLevel(score); i++) {
+
+    for(let i = 0; i < l; i++) {
        number.push(Math.floor(Math.random()*10).toString());
     }
-    return number;
-  }
-
-  function receiveAnswer(g) {
-    guess = g;
-    if (correctDigits(g, number) == number.length) {
-      state = next
-    } else {
-      state = again
-    }
+    return {
+      queryEl: null,
+      number: number,
+      guess: [],
+      loc: loc
+    };
   }
 
 </script>
@@ -134,14 +183,20 @@
 <svelte:window on:keypress={pageListener} use:onload on:resize={onresize}/>
 
 <div style:height="{height}px" style:width="{width}px">
-  <Answer x={width/2} y={height/2}
-          bind:this={queryEl}
-          number={number}
-          blink={state == blink}
-          answer={state == query}
-          />
-
+  {#each games as game}
+    <Answer x={game.loc.x} y={game.loc.y}
+            bind:this={game.queryEl}
+            number={game.number}
+            blink={state == blink}
+            answer={state == query}
+            />
+  {/each}
   <div id=instructions>
+
+    <div style:display={state == query ? 'block' : 'none'}>
+      Do you remember the numbers you just saw?
+    </div>
+
     <div style:display={state == init ? 'block' : 'none'}>
       Press [Spacebar] to begin
     </div>
@@ -154,11 +209,11 @@
     </div>
 
     <div style:display={state == again ? 'block' : 'none'}>
-      {correctCount}/{number.length} correct
-    </div> 
+      {correctCount}/{games.reduce( (a, x) => a + x.number.length, 0)} correct
+    </div>
     <div style:display={state == again ? 'block' : 'none'}>
       Press [Spacebar] to try again
-    </div> 
+    </div>
   </div>
 </div>
 
