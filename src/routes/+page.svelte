@@ -30,7 +30,7 @@
   let correctCount = 0;
 
   // Difficulty level
-  let level = 5;
+  let level = 10;
   let delay = initDelay;
   let dickishness = 1;
   let score = 0;
@@ -80,18 +80,45 @@
     }
   }
 
-  function processResponse(games, guess, i) {
+  function finished(game) {
+    return game.guess.every(x => x !== "");
+  }
+
+  function nextUnfinished(games, i) {
+    const n = games.length
+    for (let j = i + 1; j % n != i; j++) {
+      const k = j % n;
+      if (!finished(games[k])) {
+        return k;
+      }
+    }
+    return -1
+  }
+
+  function processResponse(games, i) {
     const game = games[i];
 
-    adjustLevel(game.number, guess);
-    correctCount += correctDigits(guess, game.number);
+    const cont = nextUnfinished(games, i);
 
-    if (i == games.length - 1) {
-      if (correctCount == games.reduce( (a,x) => a + x.number.length, 0)) {
+    // adjustLevel(game.number, guess);
+    // correctCount += correctDigits(guess, game.number);
+
+    if (cont == -1) {
+      const total = games.reduce((a, x) => a + x.number.length, 0);
+      correctCount = games.reduce((a, x) => a + correctDigits(x.guess, x.number), 0);
+
+      adjustLevel(
+        games.reduce((a, x) => a.concat(x.guess), []),
+        games.reduce((a, x) => a.concat(x.number), [])
+      );
+
+      if ( correctCount === total ) {
         state = next;
       } else {
         state = again;
       }
+    } else {
+      games[cont].queryEl.clear();
     }
   }
 
@@ -103,8 +130,9 @@
       requestAnimationFrame(() => playGame(games, n - 1));
     } else {
       for (let i = 0; i < games.length; i++) {
+        games[i].queryEl.clear();
         games[i].queryEl.$set({
-          onClose: g => processResponse(games, g, i)
+          onClose: () => processResponse(games, i)
         });
       }
 
@@ -113,17 +141,16 @@
       setTimeout(() => {
         state = query;
         requestAnimationFrame(() => {
-          for (let i = games.length - 1; i >= 0; i--) {
-            games[i].queryEl.clear();
-          }
+          games[0].queryEl.clear();
         });
       }, 300);
     }
   }
 
   function pageListener (e) {
-    if (e.key === ' ') {
+    if (e.key == ' ') {
       e.preventDefault();
+      console.log(state)
 
       if (games.length == 0 || state == next) {
         games = genGame(level);
@@ -131,13 +158,12 @@
       };
       state = pause;
       setTimeout(() => playGame(games, delay), Math.random()*500+500);
-
     }
   }
 
   function jitter(max, x, d) {
     // REVIEW: Maybe this ought to be gaussian instead of uniform.
-    return Math.max(-1*x, Math.min(max - x, (Math.random() - 1/2)*Math.pow(2, d)));
+    return Math.max(-1*x, Math.min(max - x - 50, (Math.random() - 1/2)*Math.pow(2, d)));
   }
 
   function genGame(level) {
@@ -146,13 +172,15 @@
 
     } else if (level <= 12) {
       console.warn("You are now in an unstable level. Try to have fun.");
+      const elemh = 40;
       let games = [];
+
+
       for (let i = 9; i <= level; i++) {
-        let y = height/2 - (level - 9)/2*100 + (level - i)*100;
-        console.log(width/2, y)
+        let y = height/2 - (level - 9)/2*elemh + (level - i)*elemh;
         games.push(genSimpleGame(3, width/2, y));
       }
-      return games;
+      return games.reverse();
     } else {
       throw("You've reached the highest level yet implemented. You win!");
     }
@@ -173,7 +201,7 @@
     return {
       queryEl: null,
       number: number,
-      guess: [],
+      guess: number.map(x => ""),
       loc: loc
     };
   }
@@ -186,6 +214,7 @@
   {#each games as game}
     <Answer x={game.loc.x} y={game.loc.y}
             bind:this={game.queryEl}
+            bind:guess={game.guess}
             number={game.number}
             blink={state == blink}
             answer={state == query}

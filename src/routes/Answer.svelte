@@ -5,23 +5,29 @@
   export let blink = false;
   export let onClose = () => null;
   export let number = [1,2,3,4];
+  export let guess = number.map( x => "");
 
-  $: guess = number.map( x => "");
+  let digitBoxes = number.map( x => null )
 
   function focus(state) {
-    const el = document.getElementById("digit-" + state);
-    el.focus();
+    const box = digitBoxes[state];
+    if (box !== null) {
+      box.focus();
+    }
   }
 
   function answerEntry(index, e) {
-    e.preventDefault();
+    if (!e.altKey && !e.ctrlKey) {
+      e.preventDefault();
+    }
+
     if (['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'].indexOf(e.key) >= 0) {
       guess[index] = e.key;
-      
+
       if (index < number.length - 1) {
         focus(index + 1)
       } else {
-        onClose(guess);
+        onClose();
       }
     } else if (e.key == 'Backspace' && index > 0) {
       guess[index - 1] = "";
@@ -29,7 +35,7 @@
     }
   }
 
-  export function clear(index) {
+  export function clear() {
     guess = number.map(x => "");
     focus(0);
   }
@@ -42,10 +48,10 @@
 
   <div style:display="flex">
   <div style:display={answer ? 'block' : 'none'}
-       id="answer-container"
-       on:focus={clear} >
+       class="answer-container"
+       on:click={clear} >
     {#each guess as digit, index}
-      <input id="digit-{index}"
+      <input bind:this={digitBoxes[index]}
              type=text
              value={digit}
              class="answer-digit"
@@ -70,30 +76,27 @@
     align-items: center;
     width: 10em;
   }
-  
+
   input {
     color: transparent;
     text-shadow: 0 0 0 #000000;
   }
 
-  #answer-container {
+  .answer-container {
     width: 100%;
     display: flex;
+    z-index:100;
   }
 
   .answer-digit {
     height: 1.4em;
-    width: 0.5em;
-    padding-left: 0.05em;
+    width: 0.6em;
+    padding-left: 0.08em;
     border-radius: 0.3em;
     border-width: 0.08em;
     border-color: #dddddd;
 
     /* TODO: remove the text cursor */
     font-size: 1.4em;
-  }
-
-  .green {
-    border-color: green;
   }
 </style>
