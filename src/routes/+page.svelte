@@ -4,6 +4,8 @@
 
   import Answer from './Answer.svelte';
 
+  import * as Score from '../scoring.js';
+
   const init = Symbol("init");
   const blink = Symbol("blink");
   const pause = Symbol("pause");
