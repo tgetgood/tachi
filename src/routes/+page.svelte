@@ -11,14 +11,11 @@
   const next = Symbol("next");
   const again = Symbol("again");
 
-  // This might need to be adjusted by platform
-  // TODO: How does one detect framerate from the browser API?
-  // REVIEW: Should I just set this in miliseconds and let the system round it
-  // to the nearest frame? That's probably the best way to do it. Need to test
-  // that that gives us short enough display windows though.
-  const minDelay = 4;
-  const maxDelay = 60;
-  const initDelay = 16;
+  // All delays are in milliseconds, but in reality they get rounded up to the
+  // next frame (best case).
+  const minDelay = 8;
+  const maxDelay = 2000;
+  const initDelay = 250;
 
   let height;
   let width;
@@ -30,7 +27,7 @@
   let correctCount = 0;
 
   // Difficulty level
-  let level = 10;
+  let level = 5;
   let delay = initDelay;
   let dickishness = 1;
   let score = 0;
@@ -100,9 +97,6 @@
 
     const cont = nextUnfinished(games, i);
 
-    // adjustLevel(game.number, guess);
-    // correctCount += correctDigits(guess, game.number);
-
     if (cont == -1) {
       const total = games.reduce((a, x) => a + x.number.length, 0);
       correctCount = games.reduce((a, x) => a + correctDigits(x.guess, x.number), 0);
@@ -126,17 +120,8 @@
     correctCount = 0;
     state = blink;
 
-    if (n > 0) {
-      requestAnimationFrame(() => playGame(games, n - 1));
-    } else {
-      for (let i = 0; i < games.length; i++) {
-        games[i].queryEl.clear();
-        games[i].queryEl.$set({
-          onClose: () => processResponse(games, i)
-        });
-      }
-
-      state = pause;
+    setTimeout(() => requestAnimationFrame(() => {
+      state = pause
 
       setTimeout(() => {
         state = query;
@@ -144,18 +129,25 @@
           games[0].queryEl.clear();
         });
       }, 300);
+    }), n);
+
+    for (let i = 0; i < games.length; i++) {
+      games[i].queryEl.clear();
+      games[i].queryEl.$set({
+        onClose: () => processResponse(games, i)
+      });
     }
   }
 
   function pageListener (e) {
     if (e.key == ' ') {
       e.preventDefault();
-      console.log(state)
 
-      if (games.length == 0 || state == next) {
+      // if (games.length == 0 || state == next) {
         games = genGame(level);
         correctCount = 0;
-      };
+      // };
+
       state = pause;
       setTimeout(() => playGame(games, delay), Math.random()*500+500);
     }

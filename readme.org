@@ -30,6 +30,34 @@ But lot easier to come by and hopefully just as fun.
   It seems that setting the minimum time to 4 frames results in images showing
   every time without significant tearing, but obviously this hasn't been tested
   extensively.
+* Experimental Mechanics
+  The reason I started to write this was to see if I could train myself to widen
+  my perceptual field. And to test Renshaw's claims re reading comprehension
+  benefits from this kind of training. So with that in mind, let's think about
+  the structure of levels.
+
+  While playing this, my overwhelming impression is of being thrashed
+  around. It's kind of fun, but lots of variables are beings changed under the
+  hood and I have limited control or insight into control them. That's pretty
+  bad considering I wrote the code last week.
+
+  The individual ideas: longer numbers, decreasing exposure times, multiple
+  images, randomised locations, etc. are still good ideas, I believe, but I need
+  to isolate them from one another at first and bring them together later on.
+
+  What's the shortest exposure time for which I can reliably memorise an N digit
+  number? That's a useful metric.
+
+  Keeping score boards: you should be able to see your own stats. That requires
+  keeping them. Local storage is good enough to start.
+
+  As we start to show multiple numbers, start with columns, but they lay them
+  out randomly in a disk of growing size. Or better a thin ring of growing
+  diameters. This will make the entire level an exercise in perceptual field
+  radius and let us measure the minimum exposure time at various radii to
+  memorise. Simplest would be to evenly spread the numbers on a circle but
+  randomise the orientation of the circle (but keep the numbers upright).
+
 * Difficulty Levels
   It's a game after all, so how do we make it harder as you go?
 ** Ideas
