@@ -1,6 +1,4 @@
-#+TITLE: Not a Real Tachistoscope
-
-But lot easier to come by and hopefully just as fun.
+#+TITLE: How quickly can you see?
 
 [[https://tgetgood.github.io/tachi][Try the demo]] and see for yourself!
 
@@ -8,10 +6,10 @@ But lot easier to come by and hopefully just as fun.
   A game that I hope will be fun. A game where you learn to see things faster
   and more dynamically.
 
-  The difficulty autotunes based on your performace.
+  The difficulty tuning is very much a work in progress.
 
-  I like games where you succeed by growing. Not the fictional character you
-  play, but you yourself.
+  This is a game where you advance by getting better at something. No collecting
+  junk.
 * Where does it come from?
   Inspired by the work of [[https://en.wikipedia.org/wiki/Samuel_Renshaw][Sam Renshaw]] before, during, and after WWII. See also
   [[https://www.tandfonline.com/doi/abs/10.1080/00223980.1945.9917254][this paper]].
@@ -22,19 +20,15 @@ But lot easier to come by and hopefully just as fun.
   0.5ms), but I'm hoping there will still be some advantage to memory,
   perception, and visual comprehension to be had with the 1/15 to 1/100 of a
   second duration that can be achieved on modern screens.
-* Limitations
-  Due to a deep stack that I'm not going to pretend I understand in depth, it
-  has proven impossible to reliably show an image for a single frame in a
-  browser.
-
-  It seems that setting the minimum time to 4 frames results in images showing
-  every time without significant tearing, but obviously this hasn't been tested
-  extensively.
+* Status
+  The game is playable, but in flux, so until this notice goes away, assume
+  you're seeing nightly material. Because you are.
 * Experimental Mechanics
   The reason I started to write this was to see if I could train myself to widen
-  my perceptual field. And to test Renshaw's claims re reading comprehension
-  benefits from this kind of training. So with that in mind, let's think about
-  the structure of levels.
+  my perceptual field. And to test Renshaw's claims that this sort of training
+  improves reading comprehension and thus indirectly improves reading speed.
+
+  With that in mind, let's think about the structure of levels.
 
   While playing this, my overwhelming impression is of being thrashed
   around. It's kind of fun, but lots of variables are beings changed under the
@@ -50,20 +44,12 @@ But lot easier to come by and hopefully just as fun.
 
   Keeping score boards: you should be able to see your own stats. That requires
   keeping them. Local storage is good enough to start.
-
-  As we start to show multiple numbers, start with columns, but they lay them
-  out randomly in a disk of growing size. Or better a thin ring of growing
-  diameters. This will make the entire level an exercise in perceptual field
-  radius and let us measure the minimum exposure time at various radii to
-  memorise. Simplest would be to evenly spread the numbers on a circle but
-  randomise the orientation of the circle (but keep the numbers upright).
-
 * Difficulty Levels
   It's a game after all, so how do we make it harder as you go?
 ** Ideas
 *** Length of number to memorise
     This is currently implemented, and for the life of me I can't get the 7
-    digit numbers in 4 frames.
+    digit numbers in less than 1/15 of a second.
 *** Length of exposure
     If you can't memorise a given number size, we should show you numbers of
     that size for a longer duration and then work to shorten that duration.
@@ -76,9 +62,17 @@ But lot easier to come by and hopefully just as fun.
 
     Do we move the numbers each time you get it right, or every retry as well?
     Is that something that should scale with difficulty?
+*** Force wider perceptual field
+    Put multiple numbers on an ellipse, evenly spaced but with a random initial
+    angle. As the player improves, increase the size of the ellipse. The
+    exposure time is too short to saccade accross the whole image, so you need
+    to learn to see with the edges of the macula.
+
+    I should state now that I don't know if such learning is possible, but it's
+    worth finding out.
 *** Play with delay before flash
     Randomised delay prevents you from priming yourself. I think that's
-    important, but I have no evidence as of yet.
+    important, but my only evidence is subjective.
 *** Multiple numbers
     Show columns of numbers to memorise. Or to really be a jerk just put N
     numbers at random points on the screen.
@@ -101,7 +95,13 @@ But lot easier to come by and hopefully just as fun.
     What bird did you just see? How many? which way were they going?
 
     Basically replicated Renshaw's work for the navy during WWII, but with
-    birds.
+    birds instead of fighter planes.
 
     I think this would be fun and useful, but I'll need to find and label the
     images.
+
+    Assumes you care about birds. Could also use trees, mushrooms, fish, you
+    name it. People who hunt mushrooms regulary see more mushrooms at a glance
+    than you do in an hour of staring. There's huge room for improvement for
+    most of us, but maybe you'd do better turning this off and going out in the
+    woods.
