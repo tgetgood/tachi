@@ -15,9 +15,6 @@
 
   // All delays are in milliseconds, but in reality they get rounded up to the
   // next frame (best case).
-  const minDelay = 8;
-  const maxDelay = 2000;
-  const initDelay = 250;
 
   let height;
   let width;
@@ -30,23 +27,12 @@
 
   // Difficulty level
   let level = 5;
-  let delay = initDelay;
+  let delay = 250;
   let dickishness = 1;
-  let score = 0;
-
-  function correctDigits(a, b) {
-    let out = 0;
-    for (let i = 0; i < Math.min(a.length, b.length); i++) {
-      if (a[i] == b[i]) {
-        out += 1;
-      }
-    }
-    return out;
-  }
 
   function setsize(window) {
-    height = window.innerHeight*.97;
-    width = window.innerWidth*.97;
+    height = window.innerHeight - 50;
+    width = window.innerWidth - 16;
   }
 
   function onload(e) {
@@ -55,28 +41,6 @@
 
   function onresize(e) {
     setsize(this);
-  }
-
-  function adjustLevel(number, guess) {
-    const result = correctDigits(guess, number);
-
-    if (result == number.length) {
-      score += 100;
-      delay = Math.max(minDelay, Math.ceil(delay*3/4));
-      dickishness += 2;
-    } else {
-      score -= 100*(number.length - result)/number.length;
-      delay = Math.min(maxDelay, Math.ceil(delay * 4/3));
-      dickishness = Math.max(1, Math.floor(dickishness* (1/2 + result/(2*number.length))));
-    }
-    if (score >= 500) {
-      level += 1;
-      delay = initDelay;
-      score = 0;
-    } else if (score <= -800) {
-      level -= 1;
-      score = 300;
-    }
   }
 
   function finished(game) {
@@ -94,6 +58,29 @@
     return -1
   }
 
+  function correctDigits(a, b) {
+    let out = 0;
+    for (let i = 0; i < Math.min(a.length, b.length); i++) {
+      if (a[i] == b[i]) {
+        out += 1;
+      }
+    }
+    return out;
+  }
+
+  function adjustChallenge(number, guess) {
+    const result = correctDigits(guess, number);
+
+    if (result === number.length) {
+      dickishness += 2;
+    } else {
+      dickishness = Math.max(1, Math.floor(dickishness* (1/2 + result/(2*number.length))));
+    }
+
+    return Score.advance(level);
+
+  }
+
   function processResponse(games, i) {
     const game = games[i];
 
@@ -103,19 +90,23 @@
       const total = games.reduce((a, x) => a + x.number.length, 0);
       correctCount = games.reduce((a, x) => a + correctDigits(x.guess, x.number), 0);
 
-      adjustLevel(
+      ({ level, delay } = adjustChallenge(
         games.reduce((a, x) => a.concat(x.guess), []),
         games.reduce((a, x) => a.concat(x.number), [])
-      );
+      ));
 
       if ( correctCount === total ) {
+        Score.success({ level, delay })
         state = next;
       } else {
+        Score.failure({ level, delay })
         state = again;
       }
     } else {
       games[cont].queryEl.clear();
     }
+
+    console.log(Score.scores[level]);
   }
 
   function playGame (games, n) {
@@ -130,7 +121,7 @@
         requestAnimationFrame(() => {
           games[0].queryEl.clear();
         });
-      }, 300);
+      }, 800);
     }), n);
 
     for (let i = 0; i < games.length; i++) {
@@ -157,7 +148,7 @@
 
   function jitter(max, x, d) {
     // REVIEW: Maybe this ought to be gaussian instead of uniform.
-    return Math.max(-1*x, Math.min(max - x - 50, (Math.random() - 1/2)*Math.pow(2, d)));
+    return Math.max(-1*x, Math.min(max - x - 20, (Math.random() - 1/2)*Math.pow(2, d)));
   }
 
   function genGame(level) {
@@ -240,6 +231,8 @@
   </div>
 </div>
 
+<footer> <a href="/stats">stats</a> </footer>
+
 <style>
   #instructions {
     height: 100%;
@@ -249,5 +242,16 @@
     flex-direction: column;
     justify-content: end;
     align-items: center;
+  }
+
+  footer {
+    padding-left: 1em;
+    padding-bottom: 5px;
+  }
+
+  footer a {
+    text-decoration: none;
+    color: #555;
+    font-size: x-large;
   }
 </style>
