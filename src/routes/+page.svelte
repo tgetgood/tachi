@@ -1,12 +1,11 @@
 <script>
 
-  //TODO: Save current level and score to local storage
-
   import Answer from './Answer.svelte';
 
   import * as Score from '../scoring.js';
   Score.init();
 
+  // Crappy state machine. Good enough for now.
   const init = Symbol("init");
   const blink = Symbol("blink");
   const pause = Symbol("pause");
@@ -14,22 +13,17 @@
   const next = Symbol("next");
   const again = Symbol("again");
 
+  let state = init;
+
   // All delays are in milliseconds, but in reality they get rounded up to the
   // next frame (best case).
 
   let height;
   let width;
 
-  let state = init;
-
   let games = [];
 
   let correctCount = 0;
-
-  // Difficulty level
-  let level = 5;
-  let delay = 250;
-  let dickishness = 1;
 
   function setsize(window) {
     height = window.innerHeight - 50;
@@ -69,19 +63,6 @@
     return out;
   }
 
-  function adjustChallenge(number, guess) {
-    const result = correctDigits(guess, number);
-
-    if (result === number.length) {
-      dickishness += 2;
-    } else {
-      dickishness = Math.max(1, Math.floor(dickishness* (1/2 + result/(2*number.length))));
-    }
-
-    return Score.advance(level);
-
-  }
-
   function processResponse(games, i) {
     const game = games[i];
 
@@ -89,21 +70,18 @@
 
     if (cont == -1) {
       const total = games.reduce((a, x) => a + x.number.length, 0);
-      correctCount = games.reduce((a, x) => a + correctDigits(x.guess, x.number), 0);
+      correctCount = games.reduce(
+        (a, x) => a + correctDigits(x.guess, x.number),
+        0
+      );
 
-      ({ level, delay } = adjustChallenge(
-        games.reduce((a, x) => a.concat(x.guess), []),
-        games.reduce((a, x) => a.concat(x.number), [])
-      ));
+      Score.adjustChallenge(correctCount === total);
 
       if ( correctCount === total ) {
-        Score.success({ level, delay })
         state = next;
       } else {
-        Score.failure({ level, delay })
         state = again;
       }
-      Score.save();
     } else {
       games[cont].queryEl.clear();
     }
@@ -136,13 +114,14 @@
     if (e.key == ' ') {
       e.preventDefault();
 
-      // if (games.length == 0 || state == next) {
-        games = genGame(level);
-        correctCount = 0;
-      // };
+      const level = Score.scores.currentLevel;
+      games = genGame(Score.meta(level));
+      correctCount = 0;
 
       state = pause;
-      setTimeout(() => playGame(games, delay), Math.random()*500+500);
+      const stats = Score.stats(level);
+      console.log(level, stats)
+      setTimeout(() => playGame(games, stats.delay), Math.random()*500+500);
     }
   }
 
@@ -151,42 +130,28 @@
     return Math.max(-1*x, Math.min(max - x - 20, (Math.random() - 1/2)*Math.pow(2, d)));
   }
 
-  function genGame(level) {
-    if (level <= 9) {
-      return [genSimpleGame(level, width/2, height/2)];
+  function genGame({tokens, digits}) {
+    const elemh = 40;
+    let games = [];
 
-    } else if (level <= 12) {
-      console.warn("You are now in an unstable level. Try to have fun.");
-      const elemh = 40;
-      let games = [];
-
-      for (let i = 9; i <= level; i++) {
-        let y = height/2 - (level - 9)/2*elemh + (level - i)*elemh;
-        games.push(genSimpleGame(3, width/2, y));
-      }
-      return games.reverse();
-    } else {
-      throw("You've reached the highest level yet implemented. You win!");
+    for (let i = 0; i < tokens; i++) {
+      let y = height/2 - tokens/2*elemh + (tokens - i)*elemh;
+      games.push(genSimpleGame(digits, width/2, y));
     }
+    return games.reverse();
   }
+
   function genSimpleGame(level, x, y) {
-    let l = Math.random() < dickishness/2048 ? level + 1 : level;
-
-      let loc = {
-        x: x + jitter(width, x, dickishness),
-        y: y + jitter(height, y, dickishness)
-      };
-
     let number = [];
 
-    for(let i = 0; i < l; i++) {
+    for(let i = 0; i < level; i++) {
        number.push(Math.floor(Math.random()*10).toString());
     }
     return {
       queryEl: null,
       number: number,
       guess: number.map(x => ""),
-      loc: loc
+      loc: {x, y}
     };
   }
 

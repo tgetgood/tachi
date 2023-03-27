@@ -1,149 +1,215 @@
 import { onMount } from 'svelte';
 
-let scores = {};
-let ls;
-
-export function init() {
-  onMount(() => {
-    ls = localStorage;
-    const stored = ls.serialisedScores;
-    scores = stored ? JSON.parse(stored) : {};
-
-  });
-}
-
-export function save() {
-  ls.serialisedScores = JSON.stringify(scores);
-}
-
-const initDelay = 250;
-const maxDelay = 2048;
-const minDelay = 8;
-
-export const gameState = { level: 5, delay: 250 };
+const schemaVersion = "1";
 
 export const delayBuckets = [
-  {ms:   10, name: "1/100"},
+  // {ms:   10, name: "1/100"},
   {ms:   20, name: "1/50"},
   {ms:   40, name: "1/25"},
   {ms:  100, name: "1/10"},
   {ms:  250, name: "1/4"},
   {ms:  500, name: "1/2"},
-  {ms: 1000, name: "1"},
-  {ms: 2000, name: "2"}
+  {ms: 1000, name: "1"}
 ];
 
-export const levels = [3,4,"5"];
+// REVIEW: Do I need these?
+const minDelay = delayBuckets.map(x => x.ms).reduce((a, x) => Math.min(a, x));
+const maxDelay = delayBuckets.map(x => x.ms).reduce((a, x) => Math.max(a, x));
 
-export const S = Symbol("success")
-export const F = Symbol("failure")
-
-let runningScore = 0;
-
-function getLevel(level) {
-  if ( scores[level] === undefined ) {
-    scores[level] = {
-      bestTime: 5000,
-      currentRun: 0,
-      log: []
-    };
+export const levels = [
+  {
+    name: "3 digits",
+    tokens: 1,
+    digits: 3,
+    initDelay: 100,
+    advance: 10
+  },
+  {
+    name: "4 digits",
+    tokens: 1,
+    digits: 4,
+    initDelay: 100,
+    advance: 10
+  },
+  {
+    name: "5 digits",
+    tokens: 1,
+    digits: 5,
+    initDelay: 100,
+    advance: 10
+  },
+  {
+    name: "2 x 3 digits",
+    tokens: 2,
+    digits: 3,
+    initDelay: 100,
+    advance: 10
+  },
+  {
+    name: "6",
+    tokens: 1,
+    digits: 6,
+    initDelay: 250,
+    advance: 10
+  },
+  {
+    name: "7",
+    tokens: 1,
+    digits: 6,
+    initDelay: 500,
+    advance: 10
+  },
+  {
+    name: "2 x 4 digits",
+    tokens: 2,
+    digits: 4,
+    initDelay: 500,
+    advance: 10
+  },
+  {
+    name: "8",
+    tokens: 1,
+    digits: 3,
+    initDelay: 500,
+    advance: 40
+  },
+  {
+    name: "3 x 3 digits",
+    tokens: 3,
+    digits: 3,
+    initDelay: 500,
+    advance: 10
+  },
+  {
+    name: "9",
+    tokens: 1,
+    digits: 9,
+    initDelay: 500,
+    advance: 100
   }
+];
 
-  return scores[level];
+export let scores = levels.reduce((a, l) => {
+  a.levels[l.name] = {
+    currentStreak: 0,
+    delay: l.initDelay,
+    bestTime: 5000, // 5s is infinity for us.
+    timeScores: delayBuckets.map(({ms}) => {
+      return {
+        delay: ms,
+        correct: 0,
+        tries: 0
+      };
+    })
+  };
+  return a;
+  }, {
+    // game metadata
+    version: "1", // don't change versions unless you break compatibility.
+    currentLevel: levels[0].name,
+    levels: {}
+  });
+
+let ls;
+
+export function save() {
+  ls.serialisedScores = JSON.stringify(scores);
 }
+export function init() {
+  onMount(() => {
+    ls = localStorage;
+    const stored = ls.serialisedScores;
 
-export function success(attempt) {
-  const { level, delay } = attempt;
+    if (stored === undefined) {
+      save();
+      return;
+    }
 
-  const s = getLevel(level);
+    const revived = JSON.parse(stored);
 
-  s.log.push([S, attempt]);
-
-  if (delay < s.bestTime) {
-    s.bestTime = delay;
-  }
-
-  if (s.currentRun < 0) {
-    s.currentRun = 1;
-  } else {
-    s.currentRun += 1;
-  }
-
-  // TODO: Find the shortest delay at which the player consistently gets 90%(?)
-  // of answers correct. This should be a rolling average with a window of (???)
-  // attempts. Maybe just take the last 15 and make sure that 4 out of each
-  // third were correct?
-
-  // TODO: Store the percentage of correct answers as a function of delay. Maybe
-  // just break it down into >1s, > 1/2s, > 1/4s, 1/10, 1/25. 1/50, 1/100 (if
-  // frame rate is high enough.
-}
-
-export function failure(attempt) {
-  const { level } = attempt;
-
-  const s = getLevel(level);
-
-  s.log.push([F, attempt]);
-
-  if (s.currentRun > 0) {
-    s.currentRun = -1;
-  } else {
-    s.currentRun -= 1;
-  }
-
-}
-
-// REVIEW: is this a reasonable bucketing strategy?
-export function scoresByDelay(level) {
-  const tally = delayBuckets.map(x => { return  {correct: 0, total: 0} })
-
-  getLevel(level).log.map(([status, { delay }]) => {
-    for (let i = 0; i < delayBuckets.length; i++) {
-      if (delay < delayBuckets[i].ms && ( i === 0 || delay > delayBuckets[i - 1].ms )) {
-        tally[i].total += 1;
-        if (status === S) {
-          tally[i].correct += 1;
-        }
-      }
+    if (revived.version !== schemaVersion) {
+      ls.clear();
+      save();
+    } else {
+      scores = revived;
     }
   });
-  return tally;
+
+  console.log(scores);
 }
 
-// FIXME: These two functions only differ in the condition. 
-export function cumulativeStats(level) {
-  const bs = delayBuckets.map(x => { return {correct: 0, total: 0} })
-
-  getLevel(level).log.map(([status, { delay }]) => {
-    delayBuckets.map(({ms}, i) => {
-      if (delay < ms) {
-        bs[i].total += 1;
-        if ( status === S ) {
-          bs[i].correct += 1;
-        }
-      }
-    });
-  });
-    
-  return bs;
+export function meta(level) {
+  return levels.filter(x => x.name === level)[0];
 }
 
-function bestConsistentTime(level) {
-  const delays = scoresByDelay(getLevel(level));
+export function stats(level) {
+  return scores.levels[level];
+}
 
-  for (let i = 0; i < delays.length; i++) {
-    if (delays[i].correct > 0 && delays[i].correct/delays[i].total > 0.8) {
-      return delaysBuckets[i].ms;
+function nextLevel(level) {
+  const i = levels.map(x => x.name).indexOf(level);
+
+  if (i === -1 || i === levels.length) {
+    throw("No more levels implemented. Congrats, you win!");
+  }
+
+  return levels[i+1].name;
+}
+
+function shiftDelay(delay, delta) {
+  const i = delayBuckets.map(x => x.ms).indexOf(delay) + delta;
+
+  if (i < 0) {
+    return delayBuckets[0].ms;
+  } else if (delayBuckets.length <= i) {
+    return delayBuckets[delayBuckets.length - 1].ms;
+  } else {
+    return delayBuckets[i].ms;
+  }
+}
+
+export function adjustChallenge(success) {
+  const level = scores.currentLevel;
+  const m = meta(level);
+  const lstats = stats(level);
+  const dstats = lstats.timeScores.filter(x => x.delay === lstats.delay)[0]
+
+  // Record result of last game
+
+  dstats.tries += 1;
+  if (success) {
+    dstats.correct += 1;
+
+    if (lstats.delay < lstats.bestTime) {
+      lstats.bestTime = lstats.delay;
     }
   }
 
-  return initDelay
-}
+  if (success) {
+    if (lstats.currentStreak < 0) {
+      lstats.currentStreak = 1;
+    } else {
+      lstats.currentStreak += 1;
+    }
+  } else {
+    if (lstats.currentStreak > 0) {
+      lstats.currentStreak = -1;
+    } else {
+      lstats.currentStreak -= 1;
+    }
+  }
 
-export function advance(level) {
-  const s = getLevel(level);
+  // Set difficulty for next game
+  if (lstats.currentStreak > 3) {
+    if (lstats.delay <= m.advance) {
+      lstats.currentLevel = nextLevel(level);
+    } else {
+      lstats.delay = shiftDelay(lstats.delay, -1);
+    }
+  } else if (lstats.currentStreak < -5) {
+    lstats.delay = shiftDelay(lstats.delay, 1);
+  }
 
-  gameState.delay = bestConsistentTime(level)*Math.pow(3/4, s.currentRun);
-  return gameState;
+  // Persist progress
+  save();
 }

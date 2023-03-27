@@ -96,7 +96,6 @@
     border-width: 0.08em;
     border-color: #dddddd;
 
-    /* TODO: remove the text cursor */
     font-size: 1.4em;
   }
 </style>
