@@ -1,22 +1,49 @@
+import { onMount } from 'svelte';
+
+let scores = {};
+let ls;
+
+export function init() {
+  onMount(() => {
+    ls = localStorage;
+    const stored = ls.serialisedScores;
+    scores = stored ? JSON.parse(stored) : {};
+
+  });
+}
+
+export function save() {
+  ls.serialisedScores = JSON.stringify(scores);
+}
+
 const initDelay = 250;
 const maxDelay = 2048;
 const minDelay = 8;
 
 export const gameState = { level: 5, delay: 250 };
-export const scores = {};
 
-export const levels = [3,4,5];
+export const delayBuckets = [
+  {ms:   10, name: "1/100"},
+  {ms:   20, name: "1/50"},
+  {ms:   40, name: "1/25"},
+  {ms:  100, name: "1/10"},
+  {ms:  250, name: "1/4"},
+  {ms:  500, name: "1/2"},
+  {ms: 1000, name: "1"},
+  {ms: 2000, name: "2"}
+];
+
+export const levels = [3,4,"5"];
+
+export const S = Symbol("success")
+export const F = Symbol("failure")
 
 let runningScore = 0;
 
-const S = Symbol("success")
-const F = Symbol("failure")
-
-
 function getLevel(level) {
- if ( scores[level] === undefined ) {
+  if ( scores[level] === undefined ) {
     scores[level] = {
-      bestTime: Number.POSITIVE_INFINITY,
+      bestTime: 5000,
       currentRun: 0,
       log: []
     };
@@ -53,7 +80,7 @@ export function success(attempt) {
 }
 
 export function failure(attempt) {
-  const { level, delay } = attempt;
+  const { level } = attempt;
 
   const s = getLevel(level);
 
@@ -69,51 +96,45 @@ export function failure(attempt) {
 
 // REVIEW: is this a reasonable bucketing strategy?
 export function scoresByDelay(level) {
-  const s = getLevel(level);
+  const tally = delayBuckets.map(x => { return  {correct: 0, total: 0} })
 
-  const tally = {}
-  for (let i = 3; i < 12; i++) {
-    const o = {}
-    o[S] = 0;
-    o[F] = 0;
-    tally[i] = o;
-  }
-
-  return s.log.reduce((a, [status, { delay }]) => {
-    if (delay > maxDelay || delay < minDelay) {
-      return a;
+  getLevel(level).log.map(([status, { delay }]) => {
+    for (let i = 0; i < delayBuckets.length; i++) {
+      if (delay < delayBuckets[i].ms && ( i === 0 || delay > delayBuckets[i - 1].ms )) {
+        tally[i].total += 1;
+        if (status === S) {
+          tally[i].correct += 1;
+        }
+      }
     }
-
-    const rank = Math.ceil(Math.log2(delay));
-    a[rank][status] += 1;
-    return a;
-
-  }, tally);
+  });
+  return tally;
 }
 
-export function ratio(x) {
-  if (x[S] > 0) {
-    return x[S] / ( x[S] + x[F] );
-  } else {
-      return 0;
-  }
+// FIXME: These two functions only differ in the condition. 
+export function cumulativeStats(level) {
+  const bs = delayBuckets.map(x => { return {correct: 0, total: 0} })
+
+  getLevel(level).log.map(([status, { delay }]) => {
+    delayBuckets.map(({ms}, i) => {
+      if (delay < ms) {
+        bs[i].total += 1;
+        if ( status === S ) {
+          bs[i].correct += 1;
+        }
+      }
+    });
+  });
+    
+  return bs;
 }
 
 function bestConsistentTime(level) {
-  const s = getLevel(level);
-  if (s.log.length === 0) {
-    return initDelay;
-  }
+  const delays = scoresByDelay(getLevel(level));
 
-  const delays = scoresByDelay(s);
-
-  console.log(delays);
-
-  for (let i = 3; i < 11; i++) {
-    const win = delays[i][S];
-    const loss = delays[i][F];
-    if ( win > 0 && win / (win + loss) > 0.8) {
-      return Math.pow(2, i)
+  for (let i = 0; i < delays.length; i++) {
+    if (delays[i].correct > 0 && delays[i].correct/delays[i].total > 0.8) {
+      return delaysBuckets[i].ms;
     }
   }
 

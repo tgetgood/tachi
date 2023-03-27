@@ -5,6 +5,7 @@
   import Answer from './Answer.svelte';
 
   import * as Score from '../scoring.js';
+  Score.init();
 
   const init = Symbol("init");
   const blink = Symbol("blink");
@@ -102,11 +103,10 @@
         Score.failure({ level, delay })
         state = again;
       }
+      Score.save();
     } else {
       games[cont].queryEl.clear();
     }
-
-    console.log(Score.scores[level]);
   }
 
   function playGame (games, n) {
@@ -159,7 +159,6 @@
       console.warn("You are now in an unstable level. Try to have fun.");
       const elemh = 40;
       let games = [];
-
 
       for (let i = 9; i <= level; i++) {
         let y = height/2 - (level - 9)/2*elemh + (level - i)*elemh;

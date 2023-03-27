@@ -1,6 +1,6 @@
 <script>
   import * as Score from '../../scoring.js';
-  console.log(Score.levels)
+  Score.init();
 </script>
 
 <div>
@@ -8,21 +8,26 @@
   Current delay: {Math.ceil(Score.gameState.delay)}ms
 </div>
 
+<br>
+
 <table>
   <thead>
     <tr>
       <th>level</th>
-      <th>8ms</th>
-      <th>128ms</th>
+      {#each Score.delayBuckets as b}
+        <th>&lt;{b.name}s</th>
+      {/each}
     </tr>
   </thead>
   <tbody>
     {#each Score.levels as level}
       <tr>
         <td>{level}</td>
-        <td>{Score.ratio(Score.scoresByDelay(level)[3])}</td>
-        <td>{Score.ratio(Score.scoresByDelay(level)[6])}</td>
+        {#each Score.scoresByDelay(level) as s}
+          <td>{s.total === 0 ? "-" : Math.floor(s.correct/s.total*100) + "%"}</td>
+        {/each}
       </tr>
-      {/each}
+    {/each}
   </tbody>
 </table>
+
