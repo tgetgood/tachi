@@ -120,7 +120,6 @@
 
       state = pause;
       const stats = Score.stats(level);
-      console.log(level, stats)
       setTimeout(() => playGame(games, stats.delay), Math.random()*500+500);
     }
   }

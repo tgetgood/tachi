@@ -3,7 +3,7 @@ import { onMount } from 'svelte';
 const schemaVersion = "1";
 
 export const delayBuckets = [
-  // {ms:   10, name: "1/100"},
+  {ms:   10, name: "1/100"},
   {ms:   20, name: "1/50"},
   {ms:   40, name: "1/25"},
   {ms:  100, name: "1/10"},
@@ -112,6 +112,20 @@ export let scores = levels.reduce((a, l) => {
 
 let ls;
 
+function guestimateFramerate(n, total, init) {
+  if (n > 0) {
+    requestAnimationFrame(() => guestimateFramerate(n-1, total, init));
+  } else {
+    const deltaT = Date.now() - init;
+    const frame = deltaT/total;
+    console.log(Math.floor(1000/frame), "fps monitor detected.")
+    while (delayBuckets[0].ms < frame) {
+      // Don't reduce display time below what the monitor can manage
+      delayBuckets.splice(0, 1);
+    }
+  }
+}
+
 export function save() {
   ls.serialisedScores = JSON.stringify(scores);
 }
@@ -133,9 +147,9 @@ export function init() {
     } else {
       scores = revived;
     }
-  });
 
-  console.log(scores);
+    guestimateFramerate(15, 15, Date.now());
+  });
 }
 
 export function meta(level) {
@@ -185,28 +199,36 @@ export function adjustChallenge(success) {
     }
   }
 
+  // REVIEW: This whole idea of a streak comes about from the intuition that
+  // once you get 4 in a row or 80% or some such metric, then you've "got it"
+  // and are ready to move on.
+  //
+  // Is that the right way to think about it? What about more traditional XP
+  // gained by getting answers and then your level is ~sqrt(XP)? The problem
+  // with that is that you can be right one time in a million and just grind it
+  // out, which is not the point.
+  //
+  // So I guess the real difficulty is "how do you programmatically measure
+  // learning?" dammit I'm writing a standardised test...
+
+  // TODO: Consider measuring in rounds of N and requiring more than x% correct,
+  // or more than p% correct n times, or some such variation.
   if (success) {
-    if (lstats.currentStreak < 0) {
-      lstats.currentStreak = 1;
-    } else {
-      lstats.currentStreak += 1;
-    }
+    lstats.currentStreak += 1;
   } else {
-    if (lstats.currentStreak > 0) {
-      lstats.currentStreak = -1;
-    } else {
-      lstats.currentStreak -= 1;
-    }
+    lstats.currentStreak -= 1;
   }
 
   // Set difficulty for next game
   if (lstats.currentStreak > 3) {
+    lstats.currentStreak = 0;
     if (lstats.delay <= m.advance) {
-      lstats.currentLevel = nextLevel(level);
+      scores.currentLevel = nextLevel(level);
     } else {
       lstats.delay = shiftDelay(lstats.delay, -1);
     }
   } else if (lstats.currentStreak < -5) {
+    lstats.currentStreak = 0;
     lstats.delay = shiftDelay(lstats.delay, 1);
   }
 
