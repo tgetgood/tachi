@@ -7,7 +7,6 @@
 
   // Crappy state machine. Good enough for now.
   const init = Symbol("init");
-  const blink = Symbol("blink");
   const pause = Symbol("pause");
   const query = Symbol("query");
   const next = Symbol("next");
@@ -74,7 +73,7 @@
         (a, x) => a + correctDigits(x.guess, x.number),
         0
       );
-      games = [];
+
       Score.adjustChallenge(correctCount === total);
 
       if ( correctCount === total ) {
@@ -89,18 +88,18 @@
 
   function playGame (games, n) {
     correctCount = 0;
-    state = blink;
+    state = pause;
 
-    setTimeout(() => requestAnimationFrame(() => {
-      state = pause
+    const delay = Score.currentDelay();
 
-      setTimeout(() => {
-        state = query;
-        requestAnimationFrame(() => {
-          games[0].queryEl.clear();
-        });
-      }, 800);
-    }), n);
+    games.map(x => x.queryEl.flash(delay));
+
+    setTimeout(() => {
+      state = query;
+      requestAnimationFrame(() => {
+        games[0].queryEl.clear();
+      });
+    }, 800 + delay);
 
     for (let i = 0; i < games.length; i++) {
       games[i].queryEl.clear();

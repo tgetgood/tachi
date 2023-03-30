@@ -2,10 +2,11 @@
   export let x = 0;
   export let y = 0;
   export let answer = false;
-  export let delay = 0;
   export let onClose = () => null;
   export let number = [1,2,3,4];
   export let guess = number.map( x => "");
+
+  let blinkEl;
 
   $: display = number.reduce((a,x) => a+x, "");
 
@@ -42,11 +43,19 @@
     focus(0);
   }
 
+  export function flash(delay) {
+    const anim = {
+      opacity: [1, 1, 1, 1, 0]
+    };
+
+    blinkEl.animate(anim, delay);
+  }
+
 </script>
 
 <div class="quiz-wrapper" style="top: calc({y}px - 2.4em); left: calc({x}px - 5em);" >
 
-  <h2 class="question-container" style:animation-duration={delay}ms>
+  <h2 bind:this={blinkEl} class="question-container">
     {display}
   </h2>
 
@@ -67,20 +76,10 @@
 
 <style>
   .question-container {
-    visibility: hidden;
+    opacity: 0;
     width: 100%;
     text-align: center;
     height: 1em;
-    animation-name: blink;
-  }
-
-  @keyframes blink {
-    from {
-      visibility: visible;
-    }
-    to {
-      visibility: hidden;
-    }
   }
 
   .quiz-wrapper {
