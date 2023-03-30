@@ -163,7 +163,6 @@
             bind:this={game.queryEl}
             bind:guess={game.guess}
             number={game.number}
-            delay={Score.currentDelay()}
             answer={state == query}
             />
   {/each}
