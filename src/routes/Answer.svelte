@@ -2,10 +2,12 @@
   export let x = 0;
   export let y = 0;
   export let answer = false;
-  export let blink = false;
+  export let delay = 0;
   export let onClose = () => null;
   export let number = [1,2,3,4];
   export let guess = number.map( x => "");
+
+  $: display = number.reduce((a,x) => a+x, "");
 
   let digitBoxes = number.map( x => null )
 
@@ -44,7 +46,9 @@
 
 <div class="quiz-wrapper" style="top: calc({y}px - 2.4em); left: calc({x}px - 5em);" >
 
-  <h2 class="blink">{blink ? number.reduce((a,x) => a+x, "") : ""}</h2>
+  <h2 class="question-container" style:animation-duration={delay}ms>
+    {display}
+  </h2>
 
   <div style:display="flex">
   <div style:display={answer ? 'block' : 'none'}
@@ -62,10 +66,21 @@
 </div>
 
 <style>
-  .blink {
+  .question-container {
+    visibility: hidden;
     width: 100%;
     text-align: center;
     height: 1em;
+    animation-name: blink;
+  }
+
+  @keyframes blink {
+    from {
+      visibility: visible;
+    }
+    to {
+      visibility: hidden;
+    }
   }
 
   .quiz-wrapper {

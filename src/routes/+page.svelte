@@ -74,7 +74,7 @@
         (a, x) => a + correctDigits(x.guess, x.number),
         0
       );
-
+      games = [];
       Score.adjustChallenge(correctCount === total);
 
       if ( correctCount === total ) {
@@ -164,7 +164,7 @@
             bind:this={game.queryEl}
             bind:guess={game.guess}
             number={game.number}
-            blink={state == blink}
+            delay={Score.currentDelay()}
             answer={state == query}
             />
   {/each}

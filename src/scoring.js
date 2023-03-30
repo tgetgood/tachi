@@ -152,6 +152,10 @@ export function init() {
   });
 }
 
+export function currentDelay() {
+  return scores.levels[scores.currentLevel].delay;
+}
+
 export function meta(level) {
   return levels.filter(x => x.name === level)[0];
 }
