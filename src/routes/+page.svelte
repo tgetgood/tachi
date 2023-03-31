@@ -74,7 +74,7 @@
         0
       );
 
-      Score.adjustChallenge(correctCount === total);
+      Score.adjustChallenge(correctCount, total);
 
       if ( correctCount === total ) {
         state = next;
@@ -88,18 +88,19 @@
 
   function playGame (games, n) {
     correctCount = 0;
-    state = pause;
 
-    const delay = Score.currentDelay();
+    const wait = Math.random() * 500 + 700;
+    const flashDuration = Score.currentDelay();
+    const afterDelay = 800; // arbitrary
 
-    games.map(x => x.queryEl.flash(delay));
+    games.map(x => x.queryEl.flash(wait, flashDuration));
 
     setTimeout(() => {
       state = query;
       requestAnimationFrame(() => {
         games[0].queryEl.clear();
       });
-    }, 800 + delay);
+    }, wait + afterDelay + flashDuration);
 
     for (let i = 0; i < games.length; i++) {
       games[i].queryEl.clear();
@@ -119,7 +120,8 @@
 
       state = pause;
       const stats = Score.stats(level);
-      setTimeout(() => playGame(games, stats.delay), Math.random()*500+500);
+
+      requestAnimationFrame(() => playGame(games, stats.delay));
     }
   }
 

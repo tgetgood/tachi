@@ -5,8 +5,10 @@
   export let onClose = () => null;
   export let number = [1,2,3,4];
   export let guess = number.map( x => "");
+  export let showFocusDot = true;
 
   let blinkEl;
+  let focusDot;
 
   $: display = number.reduce((a,x) => a+x, "");
 
@@ -43,18 +45,21 @@
     focus(0);
   }
 
-  export function flash(delay) {
-    const anim = {
-      opacity: [1, 1, 1, 1, 0]
-    };
+  export function flash(preDelay, flashTime) {
+    const anim = {opacity: [1]};
+    // These timeouts are pretty hacky.
+    if (showFocusDot) {
+      setTimeout(() => focusDot.animate(anim, Math.min(50, flashTime)), 600);
+    }
 
-    blinkEl.animate(anim, delay);
+    setTimeout(() => blinkEl.animate(anim, flashTime), preDelay);
   }
 
 </script>
 
 <div class="quiz-wrapper" style="top: calc({y}px - 2.4em); left: calc({x}px - 5em);" >
 
+  <div bind:this={focusDot} class="focus-dot"><b>·</b></div>
   <h2 bind:this={blinkEl} class="question-container">
     {display}
   </h2>
@@ -75,6 +80,14 @@
 </div>
 
 <style>
+  .focus-dot {
+    font-size: 2em;
+    height: 0;
+    opacity: 0;
+    position: relative;
+    top: -0.4em;
+  }
+
   .question-container {
     opacity: 0;
     width: 100%;

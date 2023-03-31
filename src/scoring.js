@@ -16,6 +16,10 @@ export const delayBuckets = [
 const minDelay = delayBuckets.map(x => x.ms).reduce((a, x) => Math.min(a, x));
 const maxDelay = delayBuckets.map(x => x.ms).reduce((a, x) => Math.max(a, x));
 
+export const diskLevels = [];
+
+export const ringLevels = [];
+
 export const levels = [
   {
     name: "3 digits",
@@ -55,7 +59,7 @@ export const levels = [
   {
     name: "7",
     tokens: 1,
-    digits: 6,
+    digits: 7,
     initDelay: 500,
     advance: 10
   },
@@ -69,7 +73,7 @@ export const levels = [
   {
     name: "8",
     tokens: 1,
-    digits: 3,
+    digits: 8,
     initDelay: 500,
     advance: 40
   },
@@ -186,11 +190,17 @@ function shiftDelay(delay, delta) {
   }
 }
 
-export function adjustChallenge(success) {
+export function adjustChallenge(c, n) {
+  const success = c === n;
+
   const level = scores.currentLevel;
   const m = meta(level);
   const lstats = stats(level);
-  const dstats = lstats.timeScores.filter(x => x.delay === lstats.delay)[0]
+  const dstats = lstats.timeScores.filter(x => x.delay === lstats.delay)[0];
+
+  // tuning parameters
+  const levelUpThreshold = 5;
+  const levelDownThreshold = -3;
 
   // Record result of last game
 
@@ -220,18 +230,18 @@ export function adjustChallenge(success) {
   if (success) {
     lstats.currentStreak += 1;
   } else {
-    lstats.currentStreak -= 1;
+    lstats.currentStreak -= c/n - 1;
   }
 
   // Set difficulty for next game
-  if (lstats.currentStreak > 3) {
+  if (lstats.currentStreak > levelUpThreshold) {
     lstats.currentStreak = 0;
     if (lstats.delay <= m.advance) {
       scores.currentLevel = nextLevel(level);
     } else {
       lstats.delay = shiftDelay(lstats.delay, -1);
     }
-  } else if (lstats.currentStreak < -5) {
+  } else if (lstats.currentStreak < levelDownThreshold) {
     lstats.currentStreak = 0;
     lstats.delay = shiftDelay(lstats.delay, 1);
   }
