@@ -13,7 +13,8 @@ const config = {
       strict: true
     }),
     paths: {
-      base: dev ? '' : '/tachi'
+      base: dev ? '' : '/tachi',
+      relative: true
     }
 	}
 };

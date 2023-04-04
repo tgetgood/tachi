@@ -188,7 +188,7 @@
   </div>
 </div>
 
-<footer> <a href="/stats">stats</a> </footer>
+<footer> <a href="stats">stats</a> </footer>
 
 <style>
   #instructions {
