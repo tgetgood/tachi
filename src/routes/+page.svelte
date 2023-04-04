@@ -89,7 +89,7 @@
     correctCount = 0;
 
     const wait = Math.random() * 500 + 700;
-    const flashDuration = Score.currentDelay();
+    const flashDuration = Score.currentDelay;
     const afterDelay = 800; // arbitrary
 
     games.map(x => x.queryEl.flash(wait, flashDuration));
@@ -113,7 +113,7 @@
     if (e.key == ' ') {
       e.preventDefault();
 
-      const level = Score.scores.currentLevel;
+      const level = Score.currentLevel;
       const stats = Score.stats(level);
 
       games = genGame(Score.meta(level), stats);

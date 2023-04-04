@@ -1,17 +1,23 @@
 <script>
   import * as Score from '../../scoring.js';
 
-  function l() {
-    return Score.scores.currentLevel;
-  }
-  function s() {
-    return Score.scores.levels[l()];
-  }
+  const levelsSchema = Score.levels;
+  
+  let currentLevel, delay, levelsState;
+  
+  Score.scores.subscribe(x => {
+    console.log(x)
+
+    currentLevel = x.currentLevel;
+    levelsState = x.levels;
+    delay = levelsState[currentLevel].delay;
+  });
+  
 </script>
 
 <div>
-  Current level: {l()},
-  Current delay: {Math.ceil(s().delay)}ms
+  Current level: {currentLevel},
+  Current delay: {Math.ceil(delay)}ms
 </div>
 
 <br>
@@ -26,13 +32,15 @@
     </tr>
   </thead>
   <tbody>
-    {#each Score.levels as level}
+    {#each levelsSchema as level}
       <tr>
         <td>{level.name}</td>
-        {#each Score.scores.levels[level.name].timeScores as s}
+        {#each levelsState[level.name].timeScores as s}
+          {#if Score.delayBuckets.map(x => x.ms).indexOf(s.delay) >= 0}
           <td>
             {s.tries === 0 ? "-" : Math.floor(s.correct/s.tries*100) + "%"}
           </td>
+          {/if}
         {/each}
       </tr>
     {/each}

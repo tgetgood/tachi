@@ -1,4 +1,5 @@
 import { onMount } from 'svelte';
+import { writable } from 'svelte/store';
 
 const schemaVersion = "1";
 
@@ -89,7 +90,7 @@ export const levels = [
   }
 ];
 
-export let scores = levels.reduce((a, l) => {
+export let scores = writable(levels.reduce((a, l) => {
   a.levels[l.name] = {
     currentStreak: 0,
     delay: l.initDelay,
@@ -105,12 +106,15 @@ export let scores = levels.reduce((a, l) => {
   return a;
   }, {
     // game metadata
-    version: "1", // don't change versions unless you break compatibility.
+    version: schemaVersion, // don't change versions unless you break compatibility.
     currentLevel: levels[0].name,
     levels: {}
-  });
+  }));
 
-let ls;
+// Data persistence
+let ls = undefined;
+
+$: console.log(ls)
 
 function guestimateFramerate(n, total, init) {
   if (n > 0) {
@@ -126,42 +130,53 @@ function guestimateFramerate(n, total, init) {
   }
 }
 
-export function save() {
-  ls.serialisedScores = JSON.stringify(scores);
+export function save(scores) {
+  if (ls !== undefined) {
+    ls.serialisedScores = JSON.stringify(scores);
+  }
 }
+
 export function init() {
   onMount(() => {
-    ls = localStorage;
+    ls = window.localStorage;
     const stored = ls.serialisedScores;
 
     if (stored === undefined) {
-      save();
       return;
     }
 
     const revived = JSON.parse(stored);
 
     if (revived.version !== schemaVersion) {
+      console.error("schema mismatch, resetting game data!")
       ls.clear();
-      save();
     } else {
-      scores = revived;
+      scores.set(revived);
     }
 
     guestimateFramerate(15, 15, Date.now());
   });
 }
 
-export function currentDelay() {
-  return scores.levels[scores.currentLevel].delay;
-}
+// Subscriptions
+let levelsStats;
+export let currentDelay, currentLevel;
+
+scores.subscribe(x => {
+  save(x);
+  levelsStats = x.levels;
+  currentLevel = x.currentLevel;
+  currentDelay = x.levels[x.currentLevel].delay;
+});
+                 
+// logic
 
 export function meta(level) {
   return levels.filter(x => x.name === level)[0];
 }
 
 export function stats(level) {
-  return scores.levels[level];
+  return levelsStats[level];
 }
 
 function nextLevel(level) {
@@ -189,9 +204,8 @@ function shiftDelay(delay, delta) {
 export function adjustChallenge(c, n) {
   const success = c === n;
 
-  const level = scores.currentLevel;
-  const m = meta(level);
-  const lstats = stats(level);
+  const m = meta(currentLevel);
+  const lstats = stats(currentLevel);
   const dstats = lstats.timeScores.filter(x => x.delay === lstats.delay)[0];
 
   // tuning parameters
@@ -229,10 +243,12 @@ export function adjustChallenge(c, n) {
     lstats.currentStreak -= c/n - 1;
   }
 
+  const minDelay = delayBuckets[0].ms;
+
   // Set difficulty for next game
   if (lstats.currentStreak > levelUpThreshold) {
     lstats.currentStreak = 0;
-    if (lstats.delay <= m.advance) {
+    if (lstats.delay <= Math.max(m.advance, minDelay)) {
       scores.currentLevel = nextLevel(level);
     } else {
       lstats.delay = shiftDelay(lstats.delay, -1);
@@ -241,9 +257,6 @@ export function adjustChallenge(c, n) {
     lstats.currentStreak = 0;
     lstats.delay = shiftDelay(lstats.delay, 1);
   }
-
-  // Persist progress
-  save();
 }
 
 // This file is becoming increasingly poorly named
