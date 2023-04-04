@@ -12,10 +12,6 @@ export const delayBuckets = [
   {ms: 1000, name: "1"}
 ];
 
-// REVIEW: Do I need these?
-const minDelay = delayBuckets.map(x => x.ms).reduce((a, x) => Math.min(a, x));
-const maxDelay = delayBuckets.map(x => x.ms).reduce((a, x) => Math.max(a, x));
-
 export const diskLevels = [];
 
 export const ringLevels = [];
