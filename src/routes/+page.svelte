@@ -3,7 +3,6 @@
   import Answer from './Answer.svelte';
 
   import * as Score from '../scoring.js';
-  Score.init();
 
   // Crappy state machine. Good enough for now.
   const init = Symbol("init");

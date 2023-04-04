@@ -1,6 +1,5 @@
 <script>
   import * as Score from '../../scoring.js';
-  Score.init();
 
   function l() {
     return Score.scores.currentLevel;
