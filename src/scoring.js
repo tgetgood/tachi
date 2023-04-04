@@ -249,3 +249,50 @@ export function adjustChallenge(c, n) {
   // Persist progress
   save();
 }
+
+// This file is becoming increasingly poorly named
+
+// Simple vertical column layout
+export function stack(width, height, {tokens}, _) {
+  const elemh = 40;
+  const coords = []
+
+  for (let i = 0; i < tokens; i++) {
+    coords.push([width/2, height/2 - tokens/2*elemh + (tokens - i)*elemh]);
+  }
+  return coords.reverse();
+}
+
+function jitter(max, x, d) {
+  // REVIEW: Maybe this ought to be gaussian instead of uniform.
+  return Math.max(-1*x, Math.min(max - x - 20, (Math.random() - 1/2)*Math.pow(2, d)));
+}
+
+// Randomly perturn the column
+export function random(width, height, {tokens}, {difficulty}) {
+  difficulty = difficulty || 5;
+  const coords = stack(width, height, {tokens}, {});
+
+  return coords.map(([x, y]) => {
+    return [jitter(width, x, difficulty), jitter(height, y, difficulty)];
+  });
+}
+
+export function ellipse(width, height, {tokens}, {difficulty}) {
+  difficulty = difficulty || 3;
+
+  const a = width/2 * 0.8 * difficulty/10;
+  const b = height/2 * 0.8 * difficulty/10;
+
+  const distance = 2 * Math.PI/tokens;
+
+  const theta = Math.random() * distance;
+
+  const coords = [];
+
+  for (let i = 0; i < tokens; i++) {
+    const angle = theta + i * distance;
+    coords.push([a*Math.cos(angle) + width/2, b*Math.sin(angle) + height/2]);
+  }
+  return coords.reverse();
+}

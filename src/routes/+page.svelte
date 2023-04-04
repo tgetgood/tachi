@@ -115,38 +115,32 @@
       e.preventDefault();
 
       const level = Score.scores.currentLevel;
-      games = genGame(Score.meta(level));
+      const stats = Score.stats(level);
+
+      games = genGame(Score.meta(level), stats);
       correctCount = 0;
 
       state = pause;
-      const stats = Score.stats(level);
 
       requestAnimationFrame(() => playGame(games, stats.delay));
     }
   }
 
-  function jitter(max, x, d) {
-    // REVIEW: Maybe this ought to be gaussian instead of uniform.
-    return Math.max(-1*x, Math.min(max - x - 20, (Math.random() - 1/2)*Math.pow(2, d)));
+  function genGame(level, progress) {
+    let {tokens, digits, layoutFn} = level;
+    layoutFn = layoutFn || Score.stack;
+
+    return layoutFn(width, height, level, progress).map(([x, y]) =>
+      genSimpleGame(digits, x, y));
   }
 
-  function genGame({tokens, digits}) {
-    const elemh = 40;
-    let games = [];
-
-    for (let i = 0; i < tokens; i++) {
-      let y = height/2 - tokens/2*elemh + (tokens - i)*elemh;
-      games.push(genSimpleGame(digits, width/2, y));
-    }
-    return games.reverse();
-  }
-
-  function genSimpleGame(level, x, y) {
+  function genSimpleGame(digits, x, y) {
     let number = [];
 
-    for(let i = 0; i < level; i++) {
+    for(let i = 0; i < digits; i++) {
        number.push(Math.floor(Math.random()*10).toString());
     }
+
     return {
       queryEl: null,
       number: number,
