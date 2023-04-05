@@ -2,17 +2,14 @@
   import * as Score from '../../scoring.js';
 
   const levelsSchema = Score.levels;
-  
-  let currentLevel, delay, levelsState;
-  
-  Score.scores.subscribe(x => {
-    console.log(x)
 
+  let currentLevel, delay, levelsState;
+
+  Score.scores.subscribe(x => {
     currentLevel = x.currentLevel;
     levelsState = x.levels;
     delay = levelsState[currentLevel].delay;
   });
-  
 </script>
 
 <div>

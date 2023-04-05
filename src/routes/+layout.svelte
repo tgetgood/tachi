@@ -1,6 +1,6 @@
 <script>
-  import * as Score from '../scoring.js';
-  Score.init();
+  import { init }  from '../persistence.js';
+  init();
 </script>
 
 <slot />

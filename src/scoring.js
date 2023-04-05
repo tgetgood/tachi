@@ -1,7 +1,6 @@
-import { onMount } from 'svelte';
 import { writable } from 'svelte/store';
 
-const schemaVersion = "1";
+export const schemaVersion = "1";
 
 export const delayBuckets = [
   {ms:   10, name: "1/100"},
@@ -111,12 +110,8 @@ export let scores = writable(levels.reduce((a, l) => {
     levels: {}
   }));
 
-// Data persistence
-let ls = undefined;
 
-$: console.log(ls)
-
-function guestimateFramerate(n, total, init) {
+export function guestimateFramerate(n, total, init) {
   if (n > 0) {
     requestAnimationFrame(() => guestimateFramerate(n-1, total, init));
   } else {
@@ -130,45 +125,16 @@ function guestimateFramerate(n, total, init) {
   }
 }
 
-export function save(scores) {
-  if (ls !== undefined) {
-    ls.serialisedScores = JSON.stringify(scores);
-  }
-}
-
-export function init() {
-  onMount(() => {
-    ls = window.localStorage;
-    const stored = ls.serialisedScores;
-
-    if (stored === undefined) {
-      return;
-    }
-
-    const revived = JSON.parse(stored);
-
-    if (revived.version !== schemaVersion) {
-      console.error("schema mismatch, resetting game data!")
-      ls.clear();
-    } else {
-      scores.set(revived);
-    }
-
-    guestimateFramerate(15, 15, Date.now());
-  });
-}
-
 // Subscriptions
 let levelsStats;
 export let currentDelay, currentLevel;
 
 scores.subscribe(x => {
-  save(x);
   levelsStats = x.levels;
   currentLevel = x.currentLevel;
   currentDelay = x.levels[x.currentLevel].delay;
 });
-                 
+
 // logic
 
 export function meta(level) {
@@ -202,61 +168,66 @@ function shiftDelay(delay, delta) {
 }
 
 export function adjustChallenge(c, n) {
-  const success = c === n;
+  scores.update( x => {
+    const success = c === n;
 
-  const m = meta(currentLevel);
-  const lstats = stats(currentLevel);
-  const dstats = lstats.timeScores.filter(x => x.delay === lstats.delay)[0];
+    const m = meta(x.currentLevel);
+    const lstats = x.levels[x.currentLevel];
+    const dstats = lstats.timeScores.filter(x => x.delay === lstats.delay)[0];
 
-  // tuning parameters
-  const levelUpThreshold = 5;
-  const levelDownThreshold = -3;
+    // tuning parameters
+    const levelUpThreshold = 5;
+    const levelDownThreshold = -3;
 
-  // Record result of last game
+    // Record result of last game
 
-  dstats.tries += 1;
-  if (success) {
-    dstats.correct += 1;
+    dstats.tries += 1;
 
-    if (lstats.delay < lstats.bestTime) {
-      lstats.bestTime = lstats.delay;
+    if (success) {
+      dstats.correct += 1;
+
+      if (lstats.delay < lstats.bestTime) {
+        lstats.bestTime = lstats.delay;
+      }
     }
-  }
 
-  // REVIEW: This whole idea of a streak comes about from the intuition that
-  // once you get 4 in a row or 80% or some such metric, then you've "got it"
-  // and are ready to move on.
-  //
-  // Is that the right way to think about it? What about more traditional XP
-  // gained by getting answers and then your level is ~sqrt(XP)? The problem
-  // with that is that you can be right one time in a million and just grind it
-  // out, which is not the point.
-  //
-  // So I guess the real difficulty is "how do you programmatically measure
-  // learning?" dammit I'm writing a standardised test...
+    // REVIEW: This whole idea of a streak comes about from the intuition that
+    // once you get 4 in a row or 80% or some such metric, then you've "got it"
+    // and are ready to move on.
+    //
+    // Is that the right way to think about it? What about more traditional XP
+    // gained by getting answers and then your level is ~sqrt(XP)? The problem
+    // with that is that you can be right one time in a million and just grind it
+    // out, which is not the point.
+    //
+    // So I guess the real difficulty is "how do you programmatically measure
+    // learning?" dammit I'm writing a standardised test...
 
-  // TODO: Consider measuring in rounds of N and requiring more than x% correct,
-  // or more than p% correct n times, or some such variation.
-  if (success) {
-    lstats.currentStreak += 1;
-  } else {
-    lstats.currentStreak -= c/n - 1;
-  }
-
-  const minDelay = delayBuckets[0].ms;
-
-  // Set difficulty for next game
-  if (lstats.currentStreak > levelUpThreshold) {
-    lstats.currentStreak = 0;
-    if (lstats.delay <= Math.max(m.advance, minDelay)) {
-      scores.currentLevel = nextLevel(level);
+    // TODO: Consider measuring in rounds of N and requiring more than x% correct,
+    // or more than p% correct n times, or some such variation.
+    if (success) {
+      lstats.currentStreak += 1;
     } else {
-      lstats.delay = shiftDelay(lstats.delay, -1);
+      lstats.currentStreak -= c/n - 1;
     }
-  } else if (lstats.currentStreak < levelDownThreshold) {
-    lstats.currentStreak = 0;
-    lstats.delay = shiftDelay(lstats.delay, 1);
-  }
+
+    const minDelay = delayBuckets[0].ms;
+
+    // Set difficulty for next game
+    if (lstats.currentStreak > levelUpThreshold) {
+      lstats.currentStreak = 0;
+      if (lstats.delay <= Math.max(m.advance, minDelay)) {
+        x.currentLevel = nextLevel(level);
+      } else {
+        lstats.delay = shiftDelay(lstats.delay, -1);
+      }
+    } else if (lstats.currentStreak < levelDownThreshold) {
+      lstats.currentStreak = 0;
+      lstats.delay = shiftDelay(lstats.delay, 1);
+    }
+
+    return x;
+  });
 }
 
 // This file is becoming increasingly poorly named
