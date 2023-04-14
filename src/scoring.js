@@ -209,7 +209,7 @@ export function adjustChallenge(c, n) {
     if (success) {
       lstats.currentStreak += 1;
     } else {
-      lstats.currentStreak -= c/n - 1;
+      lstats.currentStreak -= 1 - c/n;
     }
 
     const minDelay = delayBuckets[0].ms;
