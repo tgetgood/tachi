@@ -22,71 +22,61 @@ export const levels = [
     name: "3 digits",
     tokens: 1,
     digits: 3,
-    initDelay: 100,
-    advance: 10
+    initDelay: 100
   },
   {
     name: "4 digits",
     tokens: 1,
     digits: 4,
-    initDelay: 100,
-    advance: 10
+    initDelay: 100
   },
   {
     name: "5 digits",
     tokens: 1,
     digits: 5,
-    initDelay: 100,
-    advance: 10
+    initDelay: 100
   },
   {
     name: "2 x 3 digits",
     tokens: 2,
     digits: 3,
-    initDelay: 100,
-    advance: 10
+    initDelay: 100
   },
   {
     name: "6 digits",
     tokens: 1,
     digits: 6,
-    initDelay: 250,
-    advance: 10
+    initDelay: 250
   },
   {
     name: "7 digits",
     tokens: 1,
     digits: 7,
-    initDelay: 500,
-    advance: 10
+    initDelay: 500
   },
   {
     name: "2 x 4 digits",
     tokens: 2,
     digits: 4,
-    initDelay: 500,
-    advance: 10
+    initDelay: 500
   },
   {
     name: "8 digits",
     tokens: 1,
     digits: 8,
-    initDelay: 500,
-    advance: 40
+    initDelay: 500
   },
   {
     name: "3 x 3 digits",
     tokens: 3,
     digits: 3,
-    initDelay: 500,
-    advance: 10
+    initDelay: 500
   },
   {
     name: "9",
     tokens: 1,
     digits: 9,
-    initDelay: 500,
-    advance: 100
+    initDelay: 500
   }
 ];
 
@@ -217,7 +207,7 @@ export function adjustChallenge(c, n) {
     // Set difficulty for next game
     if (lstats.currentStreak > levelUpThreshold) {
       lstats.currentStreak = 0;
-      if (lstats.delay <= Math.max(m.advance, minDelay)) {
+      if (lstats.delay <= minDelay) {
         x.currentLevel = nextLevel(x.currentLevel);
       } else {
         lstats.delay = shiftDelay(lstats.delay, -1);
