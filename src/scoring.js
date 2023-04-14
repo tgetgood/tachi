@@ -1,9 +1,10 @@
 import { writable } from 'svelte/store';
 
-export const schemaVersion = "1";
+export const schemaVersion = "2";
 
 export const delayBuckets = [
-  {ms:   10, name: "1/100"},
+  // FIXME: 10ms often doesn't display at all, even on 120 fps monitors. Why?
+  // {ms:   10, name: "1/100"},
   {ms:   20, name: "1/50"},
   {ms:   40, name: "1/25"},
   {ms:  100, name: "1/10"},
@@ -46,14 +47,14 @@ export const levels = [
     advance: 10
   },
   {
-    name: "6",
+    name: "6 digits",
     tokens: 1,
     digits: 6,
     initDelay: 250,
     advance: 10
   },
   {
-    name: "7",
+    name: "7 digits",
     tokens: 1,
     digits: 7,
     initDelay: 500,
@@ -67,7 +68,7 @@ export const levels = [
     advance: 10
   },
   {
-    name: "8",
+    name: "8 digits",
     tokens: 1,
     digits: 8,
     initDelay: 500,
@@ -217,7 +218,7 @@ export function adjustChallenge(c, n) {
     if (lstats.currentStreak > levelUpThreshold) {
       lstats.currentStreak = 0;
       if (lstats.delay <= Math.max(m.advance, minDelay)) {
-        x.currentLevel = nextLevel(level);
+        x.currentLevel = nextLevel(x.currentLevel);
       } else {
         lstats.delay = shiftDelay(lstats.delay, -1);
       }

@@ -23,6 +23,9 @@ export function init() {
     const revived = JSON.parse(stored);
 
     if (revived.version !== Score.schemaVersion) {
+      // TODO: do some kind of quick diff to keep the parts of the saved state
+      // that match the new schema. At the very least keep score.currentLevel so
+      // long as that level still exists.
       console.error("schema mismatch, resetting game data!")
       ls.clear();
     } else {
