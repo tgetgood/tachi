@@ -109,27 +109,28 @@
     }
   }
 
-  function startRun() {
-    const level = Score.currentLevel;
-    const stats = Score.stats(level);
+  function startRun(e) {
+    if (state == init || state == next || state == again) {
+      e.preventDefault();
+      const level = Score.currentLevel;
+      const stats = Score.stats(level);
 
-    games = genGame(Score.meta(level), stats);
-    correctCount = 0;
+      games = genGame(Score.meta(level), stats);
+      correctCount = 0;
 
-    state = pause;
+      state = pause;
 
-    requestAnimationFrame(() => playGame(games, stats.delay));
+      requestAnimationFrame(() => playGame(games, stats.delay));
+    }
   }
 
   function pageTouchListener (e) {
-    e.preventDefault();
-    startRun();
+    startRun(e);
   }
 
   function pageKeyListener (e) {
     if (e.key == ' ') {
-      e.preventDefault();
-      startRun();
+      startRun(e);
     }
   }
 

@@ -27,6 +27,9 @@
 * Status
   The game is playable, but in flux, so until this notice goes away, assume
   you're seeing nightly material. Because you are.
+
+  Intended for use on a device with a keyboard. It might work on mobile, but
+  don't count on it. Mobile support is a goal, but not top priority.
 * Experimental Mechanics
   The reason I started to write this was to see if I could train myself to widen
   my perceptual field. And to test Renshaw's claims that this sort of training
