@@ -43,3 +43,19 @@
     {/each}
   </tbody>
 </table>
+
+<footer> <a href="/">back</a> </footer>
+
+<style>
+  footer {
+    padding-top: 2em;
+    padding-left: 1em;
+    padding-bottom: 5px;
+  }
+
+  footer a {
+    text-decoration: none;
+    color: #555;
+    font-size: x-large;
+  }
+</style>

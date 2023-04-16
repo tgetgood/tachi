@@ -124,10 +124,6 @@
     }
   }
 
-  function pageTouchListener (e) {
-    startRun(e);
-  }
-
   function pageKeyListener (e) {
     if (e.key == ' ') {
       startRun(e);
@@ -160,8 +156,6 @@
 </script>
 
 <svelte:window on:keypress={pageKeyListener}
-               on:click={pageTouchListener}
-               on:touchend={pageTouchListener}
                use:onload on:resize={onresize}/>
 
 <div style:height="{height}px" style:width="{width}px">
@@ -180,21 +174,21 @@
     </div>
 
     <div style:display={state == init ? 'block' : 'none'}>
-      Tap or press [Spacebar] to begin
+      Press [Spacebar] to begin
     </div>
 
     <div style:display={state == next ? 'block' : 'none'}>
       Correct!
     </div>
     <div style:display={state == next ? 'block' : 'none'}>
-      Tap or press [Spacebar] continue
+      Press [Spacebar] continue
     </div>
 
     <div style:display={state == again ? 'block' : 'none'}>
       {correctCount}/{games.reduce( (a, x) => a + x.number.length, 0)} correct
     </div>
     <div style:display={state == again ? 'block' : 'none'}>
-      Tap or press [Spacebar] to try again
+      Press [Spacebar] to try again
     </div>
   </div>
 </div>
