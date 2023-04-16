@@ -109,19 +109,27 @@
     }
   }
 
-  function pageListener (e) {
+  function startRun() {
+    const level = Score.currentLevel;
+    const stats = Score.stats(level);
+
+    games = genGame(Score.meta(level), stats);
+    correctCount = 0;
+
+    state = pause;
+
+    requestAnimationFrame(() => playGame(games, stats.delay));
+  }
+
+  function pageTouchListener (e) {
+    e.preventDefault();
+    startRun();
+  }
+
+  function pageKeyListener (e) {
     if (e.key == ' ') {
       e.preventDefault();
-
-      const level = Score.currentLevel;
-      const stats = Score.stats(level);
-
-      games = genGame(Score.meta(level), stats);
-      correctCount = 0;
-
-      state = pause;
-
-      requestAnimationFrame(() => playGame(games, stats.delay));
+      startRun();
     }
   }
 
@@ -150,7 +158,10 @@
 
 </script>
 
-<svelte:window on:keypress={pageListener} use:onload on:resize={onresize}/>
+<svelte:window on:keypress={pageKeyListener}
+               on:click={pageTouchListener}
+               on:touchend={pageTouchListener}
+               use:onload on:resize={onresize}/>
 
 <div style:height="{height}px" style:width="{width}px">
   {#each games as game}
@@ -168,21 +179,21 @@
     </div>
 
     <div style:display={state == init ? 'block' : 'none'}>
-      Press [Spacebar] to begin
+      Tap or press [Spacebar] to begin
     </div>
 
     <div style:display={state == next ? 'block' : 'none'}>
       Correct!
     </div>
     <div style:display={state == next ? 'block' : 'none'}>
-      Press [Spacebar] continue
+      Tap or press [Spacebar] continue
     </div>
 
     <div style:display={state == again ? 'block' : 'none'}>
       {correctCount}/{games.reduce( (a, x) => a + x.number.length, 0)} correct
     </div>
     <div style:display={state == again ? 'block' : 'none'}>
-      Press [Spacebar] to try again
+      Tap or press [Spacebar] to try again
     </div>
   </div>
 </div>
